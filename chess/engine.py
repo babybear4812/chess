@@ -1,0 +1,1 @@
+#We will store game information here and determine valid moves + keep a move log
