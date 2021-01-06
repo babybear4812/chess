@@ -8,10 +8,9 @@ SQ_SIZE = WIDTH // 8  # each square size of the 8x8 board
 MAX_FPS = 15  # for animations only
 PIECES = {}  # global dictionary giving access to all piece images
 
-"""Only used once to import piece images at the start of the game"""
-
 
 def import_pieces():
+    """Only used once to import piece images at the start of the game. """
     pieces = ["wR", "wKn", "wB", "wQ", "wK",
               "wP", "bR", "bKn", "bB", "bQ", "bK", "bP"]
     for piece in pieces:
@@ -19,10 +18,8 @@ def import_pieces():
             "images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
 
-"""Main function that controls screen display, imports pieces, and runs the clock"""
-
-
 def main():
+    """Main function that controls screen display, imports pieces, and runs the clock. """
     screen = pg.display.set_mode((WIDTH, HEIGHT))  # initialize screen
 
     clock = pg.time.Clock()  # create Clock object to track time
@@ -30,21 +27,41 @@ def main():
 
     import_pieces()  # import pieces into global PIECES dictionary
 
-    # listen for pygame QUIT event; when game is quit, stop drawing state.
     playing = True
+    sqClicked = [None, None]  # will store [r, c] of square clicked
+    prevClicks = []  # will keep track of squares clicked this ply by the player
+
     while playing:
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                playing = False
-        drawState(screen, state)
+                playing = False  # when game is quit, stop drawing state.
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                # we can change this event to be a drag instead of a click
+                location = pg.mouse.get_pos()  # [x, y]
+                row = location[0] // SQ_SIZE
+                col = location[1] // SQ_SIZE
+
+                # check if user is double clicking on a square so we can clear original click
+                if sqClicked[0] == row and sqClicked[1] == col:
+                    sqClicked = []  # deselect original click
+                    prevClicks = []  # clear all other clicks
+                else:
+                    # stores first click, or overwrites prev click
+                    sqClicked = [row, col]
+                    # stores both first and second click
+                    prevClicks.append(sqClicked)
+
+                # check if they have decided to make a move
+                if len(prevClicks) == 2:
+                    pass
+
+        draw_state(screen, state)
         clock.tick(MAX_FPS)
         pg.display.flip()  # updates the full display Surface
 
 
-"""Fills board with squares and pieces every time it is called"""
-
-
-def drawState(screen, state):
+def draw_state(screen, state):
+    """Fills board with squares and pieces every time it is called. """
     board = state.board
 
     # walk through entire board
@@ -65,6 +82,9 @@ def drawState(screen, state):
                     j*SQ_SIZE, i*SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 
-# this will allow main.py to run only when we're running this module, not when it's imported from another one
 if __name__ == "__main__":
+    """
+    This will allow main.py to run only when we're running this module,
+    not when it's imported from another one.
+    """
     main()
