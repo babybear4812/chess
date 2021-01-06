@@ -1,4 +1,4 @@
-# We will store game information here and determine valid moves + keep a move log
+# the engine will store the State class which will contain the board, turn, and move log
 import numpy as np
 
 
@@ -13,6 +13,6 @@ class State():
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wKn", "wB", "wQ", "wK", "wB", "wKn", "wR"]),
-        ])
+        ])  # using numpy array for improved efficency when running AI bot
         self.whiteMove = True
-        self.log = []
+        self.log = []  # move log
