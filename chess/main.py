@@ -40,19 +40,16 @@ def main():
 def drawState(screen, state):
     board = state.board
 
-    def drawBoard():
-        for i in range(8):
-            for j in range(8):
-                color = pg.Color(235, 235, 208) if (
-                    i + j) % 2 == 0 else pg.Color(119, 148, 85)
-                pg.draw.rect(screen, color, pg.Rect(
+    for i in range(8):
+        for j in range(8):
+            color = pg.Color(235, 235, 208) if (
+                i + j) % 2 == 0 else pg.Color(119, 148, 85)
+            pg.draw.rect(screen, color, pg.Rect(
+                j*SQ_SIZE, i*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+            piece = board[i][j]
+            if piece:
+                screen.blit(IMAGES[piece], pg.Rect(
                     j*SQ_SIZE, i*SQ_SIZE, SQ_SIZE, SQ_SIZE))
-
-    def drawPieces():
-        pass
-
-    drawBoard()
-    drawPieces()
 
 
 # this will allow main.py to run only when we're running this module, not when it's imported from another one
