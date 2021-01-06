@@ -4,7 +4,6 @@ import numpy as np
 
 class State():
     def __init__(self):
-        # can be more efficient if using numpy arrays for AI piece
         self.board = np.array([
             np.array(["bR", "bKn", "bB", "bQ", "bK", "bB", "bN", "bR"]),
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
