@@ -16,6 +16,8 @@ class State():
         ])  # using numpy array for improved efficency when running AI bot
         self.whiteToMove = True
         self.log = []  # move log
+        self.whiteKingPosition = (7, 4)
+        self.blackKingPosition = (0, 4)
 
     def makeMove(self, move):
         """Takes a move and executes it (not working with castling, en passant, promotion). """
@@ -28,16 +30,30 @@ class State():
         self.log.append(move)
         self.whiteToMove = not self.whiteToMove
 
+        # update king's location if needed
+        if move.pieceMoved == "wK":
+            self.whiteKingPosition = (move.endRow, move.endCol)
+        elif move.pieceMoved == "bK":
+            self.blackKingPosition = (move.endRow, move.endCol)
+
     def undoMove(self):
         """Takes the last move and undoes it. """
         if self.log:
-            lastMove = self.log.pop()  # remove last move from log
+            # remove last move from log, if one exists
+            lastMove = self.log.pop()
 
             # clear ending position and put piece back on starting position
             self.board[lastMove.endRow][lastMove.endCol] = lastMove.pieceCaptured
             self.board[lastMove.startRow][lastMove.startCol] = lastMove.pieceMoved
 
-            self.whiteToMove = not self.whiteToMove  # undo turn change
+            # undo turn change
+            self.whiteToMove = not self.whiteToMove
+
+            # update king's location if needed
+            if lastMove.pieceMoved == "wK":
+                self.whiteKingPosition = (lastMove.startRow, lastMove.startCol)
+            elif lastMove.pieceMoved == "bK":
+                self.blackKingPosition = (lastMove.startRow, lastMove.startCol)
 
     def getPawnMoves(self, i, j, moves):
         """Generate all possible pawn moves. """
@@ -195,9 +211,56 @@ class State():
                             (self.board[r][c][0] == "b" and self.whiteToMove)):
                         moves.append(Move([i, j], [r, c], self.board))
 
+    def isInCheck(self):
+        """ Determine if player is in check. """
+        if self.whiteToMove:  # examine white king
+            return self.isUnderAttack(self.whiteKingPosition[0], self.whiteKingPosition[1])
+        else:  # examine black king
+            return self.isUnderAttack(self.blackKingPosition[0], self.blackKingPosition[1])
+
+    def isUnderAttack(self, i, j):
+        """ Determine if a specific square is under attack. """
+
+        # switch turns to validate opponent's possible moves
+        self.whiteToMove = not self.whiteToMove
+        opponentMoves = self.getAllPossibleMoves()
+        for move in opponentMoves:
+            if move.endRow == i and move.endCol == j:
+                self.whiteToMove = not self.whiteToMove  # switch turns back
+                return True
+
+        # switch turns back if not under attack
+        self.whiteToMove = not self.whiteToMove
+
     def getValidMoves(self):
         """ Generates valid moves only. """
-        return self.getAllPossibleMoves()  # temporary placeholder
+
+        # 1) generate all possible moves
+        allMoves = self.getAllPossibleMoves()
+        validMoves = []
+
+        for move in allMoves:
+            # 2) for each move, make the move
+            self.makeMove(move)
+
+            # 3) generate every opponent move
+            # 4) for each opponent move, see if it attacks our king
+
+            # At the start of this function, we check all possible moves for 1 color (e.g. white)
+            # Then, we actually proceed to make the move, which would switch turns to black
+            # So, we now need to manually switch back to make sure it's white's move so that when
+            # we're determining if they're in check, we're looking at the white king
+            self.whiteToMove = not self.whiteToMove
+
+            # 5) if king is not attacked, add it to valid moves
+            if not self.isInCheck():
+                validMoves.append(move)
+
+            # the undoMove function toggles player turn, so we need to manually toggle it back
+            self.undoMove()
+            self.whiteToMove = not self.whiteToMove
+
+        return validMoves
 
     def getAllPossibleMoves(self):
         """Generates all possible moves. """

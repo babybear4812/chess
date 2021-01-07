@@ -68,6 +68,8 @@ def main():
                         sqClicked = ()
                         prevClicks = []
                     else:
+                        # otherwise, if it wasn't a valid move, we won't change the square clicked
+                        # but we will clear the previous clicks and only keep the current click made
                         prevClicks = [sqClicked]
 
             elif event.type == pg.KEYDOWN:
