@@ -11,7 +11,7 @@ class State():
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
+            np.array(["", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
         self.whiteToMove = True
@@ -41,20 +41,49 @@ class State():
 
     def getPawnMoves(self, i, j, moves):
         """Generate all possible pawn moves. """
-        # white pawns
-        if self.whiteToMove:
+        if self.whiteToMove:  # white pawns
             if not self.board[i-1][j]:  # one square up
                 moves.append(Move([i, j], [i-1, j], self.board))
                 if i == 6 and not self.board[i-2][j]:  # two squares up
                     moves.append(Move([i, j], [i-2, j], self.board))
-        else:
+
+            # check capture up-left, then up-right
+            if j > 0 and self.board[i-1][j-1] and self.board[i-1][j-1][0] == "b":
+                moves.append(Move([i, j], [i-1, j-1], self.board))
+            if j < 7 and self.board[i-1][j+1] and self.board[i-1][j+1][0] == "b":
+                moves.append(Move([i, j], [i-1, j+1], self.board))
+
+        else:  # black pawns
             if not self.board[i+1][j]:  # one square down
                 moves.append(Move([i, j], [i+1, j], self.board))
                 if i == 1 and not self.board[i+2][j]:  # two squares down
                     moves.append(Move([i, j], [i+2, j], self.board))
 
+            # check capture down-left, then down-right
+            if j > 0 and self.board[i+1][j-1] and self.board[i+1][j-1][0] == "w":
+                moves.append(Move([i, j], [i+1, j-1], self.board))
+            if j < 7 and self.board[i+1][j+1] and self.board[i+1][j+1][0] == "w":
+                moves.append(Move([i, j], [i+1, j+1], self.board))
+
     def getRookMoves(self, i, j, moves):
         """Generate all possible rook moves. """
+        # check up
+        for r in range(i-1, 0, -1):
+            if not self.board[r][j]:
+                moves.append(Move([i, j], [r, j], self.board))
+            else:
+                if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
+                        (self.board[r][j][0] == "b" and self.whiteToMove):
+                    moves.append(Move([i, j], [r, j], self.board))
+
+                break
+
+        # check right
+
+        # check down
+
+        # check left
+
         pass
 
     def getKnightMoves(self, i, j, moves):

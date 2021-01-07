@@ -58,7 +58,7 @@ def main():
                 if len(prevClicks) == 2:
                     move = engine.Move(
                         prevClicks[0], prevClicks[1], state.board)
-                    print(move.getChessNotation())
+
                     if move in validMoves:
                         state.makeMove(move)
                         moveMade = True
@@ -66,6 +66,7 @@ def main():
                     # reset square clicked and previous clicks
                     sqClicked = [None, None]
                     prevClicks = []
+
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_z:
                     state.undoMove()
