@@ -8,8 +8,8 @@ class State():
             np.array(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"]),
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
             np.array(["", "", "", "", "", "", "", "", ]),
+            np.array(["", "", "", "", "wN", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["", "", "", "", "bK", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
@@ -109,7 +109,16 @@ class State():
 
     def getKnightMoves(self, i, j, moves):
         """Generate all possible knight moves. """
-        pass
+        jumps = [(-2, 1), (-1, 2), (1, 2), (2, 1),
+                 (2, -1), (1, -2), (-1, -2), (-2, -1)]
+        for x, y in jumps:
+            r, c = i + x, j + y
+            if -1 < r < 8 and -1 < c < 8:  # if the cell exists
+                # if the cell is empty or occupied by opponent
+                if (not self.board[r][c]) or \
+                    ((self.board[r][c][0] == "w" and not self.whiteToMove) or
+                        (self.board[r][c][0] == "b" and self.whiteToMove)):
+                    moves.append(Move([i, j], [r, c], self.board))
 
     def getBishopMoves(self, i, j, moves):
         """Generate all possible bishop moves. """
