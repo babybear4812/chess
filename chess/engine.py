@@ -113,7 +113,61 @@ class State():
 
     def getBishopMoves(self, i, j, moves):
         """Generate all possible bishop moves. """
-        pass
+        # check up-left
+        r, c = i - 1, j - 1
+        while r > -1 and c > -1:
+            if not self.board[r][c]:
+                moves.append(Move([i, j], [r, c], self.board))
+            else:
+                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                        (self.board[r][c][0] == "b" and self.whiteToMove):
+                    moves.append(Move([i, j], [r, c], self.board))
+                break
+
+            r -= 1
+            c -= 1
+
+        # check up-right
+        r, c = i - 1, j + 1
+        while r > -1 and c < 8:
+            if not self.board[r][c]:
+                moves.append(Move([i, j], [r, c], self.board))
+            else:
+                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                        (self.board[r][c][0] == "b" and self.whiteToMove):
+                    moves.append(Move([i, j], [r, c], self.board))
+                break
+
+            r -= 1
+            c += 1
+
+        # check down-right
+        r, c = i + 1, j + 1
+        while r < 8 and c < 8:
+            if not self.board[r][c]:
+                moves.append(Move([i, j], [r, c], self.board))
+            else:
+                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                        (self.board[r][c][0] == "b" and self.whiteToMove):
+                    moves.append(Move([i, j], [r, c], self.board))
+                break
+
+            r += 1
+            c += 1
+
+        # check down-left
+        r, c = i + 1, j - 1
+        while r < 8 and c > -1:
+            if not self.board[r][c]:
+                moves.append(Move([i, j], [r, c], self.board))
+            else:
+                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                        (self.board[r][c][0] == "b" and self.whiteToMove):
+                    moves.append(Move([i, j], [r, c], self.board))
+                break
+
+            r += 1
+            c -= 1
 
     def getQueenMoves(self, i, j, moves):
         """Generate all possible queen moves. """
