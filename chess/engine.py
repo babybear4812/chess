@@ -14,10 +14,19 @@ class State():
             np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
+
         self.whiteToMove = True
         self.log = []  # move log
+
         self.whiteKingPosition = (7, 4)
         self.blackKingPosition = (0, 4)
+
+        self.checkmate = False
+        self.stalemate = False
+
+        self.incheck = False  # flag if current player is in check
+        self.pins = []  # list of all current pins
+        self.checks = []  # list of all current checks
 
     def makeMove(self, move):
         """Takes a move and executes it (not working with castling, en passant, promotion). """
@@ -259,6 +268,19 @@ class State():
             # the undoMove function toggles player turn, so we need to manually toggle it back
             self.undoMove()
             self.whiteToMove = not self.whiteToMove
+
+        # check for checkmate or stalemate
+        if not validMoves:
+            if self.isInCheck():
+                print('checkmate')
+                self.checkmate = True
+            else:
+                print('stalemate')
+                self.stalemate = True
+        # else statement sets flags to False so we can undo moves if in check/stale mates
+        else:
+            self.checkmate = False
+            self.stalemate = False
 
         return validMoves
 
