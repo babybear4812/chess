@@ -125,7 +125,7 @@ class State():
 
     def getValidMoves(self):
         """ Generates valid moves only. """
-        return self.getAllPossibleMoves()  # temporary
+        return self.getAllPossibleMoves()  # temporary placeholder
 
     def getAllPossibleMoves(self):
         """Generates all possible moves. """
