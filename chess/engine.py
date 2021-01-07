@@ -39,22 +39,28 @@ class State():
 
             self.whiteToMove = not self.whiteToMove  # undo turn change
 
-    def getPawnMoves(i, j, moves):
+    def getPawnMoves(self, i, j, moves):
+        """Generate all possible pawn moves. """
         pass
 
-    def getRookMoves(i, j, moves):
+    def getRookMoves(self, i, j, moves):
+        """Generate all possible rook moves. """
         pass
 
-    def getKnightMoves(i, j, moves):
+    def getKnightMoves(self, i, j, moves):
+        """Generate all possible knight moves. """
         pass
 
-    def getBishopMoves(i, j, moves):
+    def getBishopMoves(self, i, j, moves):
+        """Generate all possible bishop moves. """
         pass
 
-    def getQueenMoves(i, j, moves):
+    def getQueenMoves(self, i, j, moves):
+        """Generate all possible queen moves. """
         pass
 
-    def getKingMoves(i, j, moves):
+    def getKingMoves(self, i, j, moves):
+        """Generate all possible king moves. """
         pass
 
     def getValidMoves(self):
@@ -63,14 +69,14 @@ class State():
 
     def getAllPossibleMoves(self):
         """Generates all possible moves. """
-        possibleMoves = []
+        moves = [Move([6, 4], [4, 4], self.board)]
 
         for i in range(8):
             for j in range(8):
                 if self.board[i][j]:
                     if (self.board[i][j][0] == "w" and self.whiteToMove) or \
                             (self.board[i][j][0] == "b" and not self.whiteToMove):
-                        piece = self.board[i][j][1]:
+                        piece = self.board[i][j][1]
                         if piece == "P":
                             self.getPawnMoves(i, j, moves)
                         elif piece == "R":
@@ -83,6 +89,8 @@ class State():
                             self.getQueenMoves(i, j, moves)
                         elif piece == "K":
                             self.getKingMoves(i, j, moves)
+
+        return moves
 
 
 class Move():
@@ -99,6 +107,20 @@ class Move():
         self.fileToCol = {"a": 0, "b": 1, "c": 2,
                           "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
         self.colToFile = {val: key for key, val in self.fileToCol.items()}
+
+    def __eq__(self, other):
+        """
+        Overriding equal so we can compare two move objects.
+        We need to compare our starting and ending position (x and y coordinates)
+        to the starting and ending postion of the possible valid move we're comparing it to.
+        Since they are both lists, we can not simply check equality regularly
+        """
+        if isinstance(other, Move):
+            return self.startRow == other.startRow and \
+                self.endRow == other.endRow and \
+                self.startCol == other.startCol and \
+                self.endCol == other.endCol
+        return False  # not sure why this is here
 
     def getChessNotation(self):
         """Converting array indices to proper chess notation. """

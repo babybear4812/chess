@@ -24,6 +24,8 @@ def main():
 
     clock = pg.time.Clock()  # create Clock object to track time
     state = engine.State()  # instance of State class from engine.py
+    validMoves = state.getValidMoves()  # list containing all possible valid moves
+    moveMade = False  # flag if move is made
 
     import_pieces()  # import pieces into global PIECES dictionary
 
@@ -57,12 +59,23 @@ def main():
                     move = engine.Move(
                         prevClicks[0], prevClicks[1], state.board)
                     print(move.getChessNotation())
-                    state.makeMove(move)
-                    sqClicked = [None, None]  # reset clicks
-                    prevClicks = []  # reset clicks
+                    if move in validMoves:
+                        state.makeMove(move)
+                        moveMade = True
+
+                    # reset square clicked and previous clicks
+                    sqClicked = [None, None]
+                    prevClicks = []
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_z:
                     state.undoMove()
+                    # we will consider this a move made so that it will trigger validMove recalculation
+                    moveMade = True
+
+        # if a move was made, generate new set of valid moves and reset flag
+        if moveMade:
+            validMoves = state.getValidMoves()
+            moveMade = False
 
         draw_state(screen, state)
         clock.tick(MAX_FPS)
