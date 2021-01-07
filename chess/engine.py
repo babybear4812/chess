@@ -7,10 +7,10 @@ class State():
         self.board = np.array([
             np.array(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"]),
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
-            np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["", "", "", "", "", "", "", "", ]),
+            np.array(["", "", "", "", "", "", "", ""]),
+            np.array(["", "", "", "", "", "", "", ""]),
+            np.array(["", "", "", "", "", "", "", ""]),
+            np.array(["", "", "", "", "", "", "", ""]),
             np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
