@@ -11,8 +11,8 @@ PIECES = {}  # global dictionary giving access to all piece images
 
 def import_pieces():
     """Only used once to import piece images at the start of the game. """
-    pieces = ["wR", "wKn", "wB", "wQ", "wK",
-              "wP", "bR", "bKn", "bB", "bQ", "bK", "bP"]
+    pieces = ["wR", "wN", "wB", "wQ", "wK",
+              "wP", "bR", "bN", "bB", "bQ", "bK", "bP"]
     for piece in pieces:
         PIECES[piece] = pg.transform.scale(pg.image.load(
             "images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
@@ -29,7 +29,7 @@ def main():
 
     playing = True
     sqClicked = [None, None]  # will store [r, c] of square clicked
-    prevClicks = []  # will keep track of squares clicked this ply by the player
+    prevClicks = []  # will store click history in the form [startSq, endSq]
 
     while playing:
         for event in pg.event.get():
@@ -38,8 +38,8 @@ def main():
             elif event.type == pg.MOUSEBUTTONDOWN:
                 # we can change this event to be a drag instead of a click
                 location = pg.mouse.get_pos()  # [x, y]
-                row = location[0] // SQ_SIZE
-                col = location[1] // SQ_SIZE
+                col = location[0] // SQ_SIZE
+                row = location[1] // SQ_SIZE
 
                 # check if user is double clicking on a square so we can clear original click
                 if sqClicked[0] == row and sqClicked[1] == col:
@@ -53,7 +53,12 @@ def main():
 
                 # check if they have decided to make a move
                 if len(prevClicks) == 2:
-                    pass
+                    move = engine.Move(
+                        prevClicks[0], prevClicks[1], state.board)
+                    print(move.getChessNotation())
+                    state.makeMove(move)
+                    sqClicked = [None, None]  # reset clicks
+                    prevClicks = []  # reset clicks
 
         draw_state(screen, state)
         clock.tick(MAX_FPS)
