@@ -8,7 +8,7 @@ class State():
             np.array(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"]),
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
             np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["", "", "", "", "wN", "", "", "", ]),
+            np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
@@ -69,52 +69,53 @@ class State():
         """Generate all possible rook moves. """
         # check up
         for r in range(i-1, -1, -1):
-            if not self.board[r][j]:
+            if not self.board[r][j]:  # if square is empty
                 moves.append(Move([i, j], [r, j], self.board))
             else:
                 if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
                         (self.board[r][j][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [r, j], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
         # check right
         for c in range(j+1, 8, 1):
-            if not self.board[i][c]:
+            if not self.board[i][c]:  # if square is empty
                 moves.append(Move([i, j], [i, c], self.board))
             else:
                 if (self.board[i][c][0] == "w" and not self.whiteToMove) or \
                         (self.board[i][c][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [i, c], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
         # check down
         for r in range(i+1, 8, 1):
-            if not self.board[r][j]:
+            if not self.board[r][j]:  # if square is empty
                 moves.append(Move([i, j], [r, j], self.board))
             else:
                 if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
                         (self.board[r][j][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [r, j], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
         # check left
         for c in range(j-1, -1, -1):
-            if not self.board[i][c]:
+            if not self.board[i][c]:  # if square is empty
                 moves.append(Move([i, j], [i, c], self.board))
             else:
                 if (self.board[i][c][0] == "w" and not self.whiteToMove) or \
                         (self.board[i][c][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [i, c], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
     def getKnightMoves(self, i, j, moves):
         """Generate all possible knight moves. """
+        # all possible jumps in horiz/vert distance from current square
         jumps = [(-2, 1), (-1, 2), (1, 2), (2, 1),
                  (2, -1), (1, -2), (-1, -2), (-2, -1)]
         for x, y in jumps:
             r, c = i + x, j + y
             if -1 < r < 8 and -1 < c < 8:  # if the cell exists
-                # if the cell is empty or occupied by opponent
+                # if square is empty or occupied by opponent
                 if (not self.board[r][c]) or \
                     ((self.board[r][c][0] == "w" and not self.whiteToMove) or
                         (self.board[r][c][0] == "b" and self.whiteToMove)):
@@ -125,13 +126,13 @@ class State():
         # check up-left
         r, c = i - 1, j - 1
         while r > -1 and c > -1:
-            if not self.board[r][c]:
+            if not self.board[r][c]:  # if square is empty
                 moves.append(Move([i, j], [r, c], self.board))
             else:
                 if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
                         (self.board[r][c][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [r, c], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
             r -= 1
             c -= 1
@@ -145,7 +146,7 @@ class State():
                 if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
                         (self.board[r][c][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [r, c], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
             r -= 1
             c += 1
@@ -159,7 +160,7 @@ class State():
                 if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
                         (self.board[r][c][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [r, c], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
             r += 1
             c += 1
@@ -173,7 +174,7 @@ class State():
                 if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
                         (self.board[r][c][0] == "b" and self.whiteToMove):
                     moves.append(Move([i, j], [r, c], self.board))
-                break
+                break  # break out of the for loop since we can't keep checking further
 
             r += 1
             c -= 1

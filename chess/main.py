@@ -64,9 +64,11 @@ def main():
                         state.makeMove(move)
                         moveMade = True
 
-                    # reset square clicked and previous clicks
-                    sqClicked = ()
-                    prevClicks = []
+                        # reset square clicked and previous clicks
+                        sqClicked = ()
+                        prevClicks = []
+                    else:
+                        prevClicks = [sqClicked]
 
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_z:
