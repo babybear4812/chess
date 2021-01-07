@@ -30,7 +30,7 @@ def main():
     import_pieces()  # import pieces into global PIECES dictionary
 
     playing = True
-    sqClicked = [None, None]  # will store [r, c] of square clicked
+    sqClicked = ()  # will store [r, c] of square clicked
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
     # game event queue
@@ -38,6 +38,7 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 playing = False  # when game is quit, stop drawing state.
+
             elif event.type == pg.MOUSEBUTTONDOWN:
                 # we can change this event to be a drag instead of a click
                 location = pg.mouse.get_pos()  # [x, y]
@@ -45,12 +46,12 @@ def main():
                 row = location[1] // SQ_SIZE
 
                 # check if user is double clicking on a square so we can clear original click
-                if sqClicked[0] == row and sqClicked[1] == col:
-                    sqClicked = []  # deselect original click
+                if sqClicked == (row, col):
+                    sqClicked = ()  # deselect original click
                     prevClicks = []  # clear all other clicks
                 else:
                     # stores first click, or overwrites prev click
-                    sqClicked = [row, col]
+                    sqClicked = (row, col)
                     # stores both first and second click
                     prevClicks.append(sqClicked)
 
@@ -64,7 +65,7 @@ def main():
                         moveMade = True
 
                     # reset square clicked and previous clicks
-                    sqClicked = [None, None]
+                    sqClicked = ()
                     prevClicks = []
 
             elif event.type == pg.KEYDOWN:
