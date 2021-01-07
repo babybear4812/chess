@@ -41,7 +41,17 @@ class State():
 
     def getPawnMoves(self, i, j, moves):
         """Generate all possible pawn moves. """
-        pass
+        # white pawns
+        if self.whiteToMove:
+            if not self.board[i-1][j]:  # one square up
+                moves.append(Move([i, j], [i-1, j], self.board))
+                if i == 6 and not self.board[i-2][j]:  # two squares up
+                    moves.append(Move([i, j], [i-2, j], self.board))
+        else:
+            if not self.board[i+1][j]:  # one square down
+                moves.append(Move([i, j], [i+1, j], self.board))
+                if i == 1 and not self.board[i+2][j]:  # two squares down
+                    moves.append(Move([i, j], [i+2, j], self.board))
 
     def getRookMoves(self, i, j, moves):
         """Generate all possible rook moves. """
@@ -69,7 +79,7 @@ class State():
 
     def getAllPossibleMoves(self):
         """Generates all possible moves. """
-        moves = [Move([6, 4], [4, 4], self.board)]
+        moves = []
 
         for i in range(8):
             for j in range(8):
