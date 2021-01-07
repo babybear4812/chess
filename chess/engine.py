@@ -171,7 +171,8 @@ class State():
 
     def getQueenMoves(self, i, j, moves):
         """Generate all possible queen moves. """
-        pass
+        self.getBishopMoves(i, j, moves)
+        self.getRookMoves(i, j, moves)
 
     def getKingMoves(self, i, j, moves):
         """Generate all possible king moves. """
