@@ -31,6 +31,7 @@ def main():
     sqClicked = [None, None]  # will store [r, c] of square clicked
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
+    # game event queue
     while playing:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -59,6 +60,9 @@ def main():
                     state.makeMove(move)
                     sqClicked = [None, None]  # reset clicks
                     prevClicks = []  # reset clicks
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_z:
+                    state.undoMove()
 
         draw_state(screen, state)
         clock.tick(MAX_FPS)
