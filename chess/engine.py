@@ -9,7 +9,7 @@ class State():
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
-            np.array(["", "", "", "", "", "", "", "", ]),
+            np.array(["", "", "", "", "bK", "", "", "", ]),
             np.array(["", "", "", "", "", "", "", "", ]),
             np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
@@ -175,8 +175,15 @@ class State():
         self.getRookMoves(i, j, moves)
 
     def getKingMoves(self, i, j, moves):
-        """Generate all possible king moves. """
-        pass
+        for x in range(-1, 2):
+            for y in range(-1, 2):
+                r, c = i + x, j + y
+                if -1 < r < 8 and -1 < c < 8:  # if the adjacent cell exists
+                    # if the cell is empty or occupied by opponent
+                    if (not self.board[r][c]) or \
+                        ((self.board[r][c][0] == "w" and not self.whiteToMove) or
+                            (self.board[r][c][0] == "b" and self.whiteToMove)):
+                        moves.append(Move([i, j], [r, c], self.board))
 
     def getValidMoves(self):
         """ Generates valid moves only. """
