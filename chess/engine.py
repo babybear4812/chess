@@ -9,9 +9,9 @@ class State():
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
             np.array(["", "", "", "", "", "", "", ""]),
             np.array(["", "", "", "", "", "", "", ""]),
+            np.array(["", "", "", "", "", "", "", "bQ"]),
             np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
+            np.array(["wP", "wP", "wP", "wP", "wP", "wR", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
 
@@ -69,7 +69,7 @@ class State():
 
         # We need to identify if the pawn is pinned.
         # as well, if it is, we need to make sure that we can only
-        # move that piece in the direction of the pin (e.g. up toward a rook pinning from the top)
+        # move that piece in the direction of the pin
         isPinned = False
         pinDirection = ()  # direction the piece is being pinned from
 
@@ -116,45 +116,63 @@ class State():
 
     def getRookMoves(self, i, j, moves):
         """Generate all possible rook moves. """
+
+        # We need to identify if the rook is pinned.
+        # as well, if it is, we need to make sure that we can only
+        # move that piece in the direction of the pin
+        isPinned = False
+        pinDirection = ()  # direction the piece is being pinned from
+
+        for idx, pin in enumerate(self.pins):
+            if pin[0] == i and pin[1] == j:
+                isPinned = True
+                pinDirection = (pin[2], pin[3])
+                self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
+                break
+
         # check up
         for r in range(i-1, -1, -1):
-            if not self.board[r][j]:  # if square is empty
-                moves.append(Move([i, j], [r, j], self.board))
-            else:
-                if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
-                        (self.board[r][j][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (-1, 0):
+                if not self.board[r][j]:  # if square is empty
                     moves.append(Move([i, j], [r, j], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
+                            (self.board[r][j][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [r, j], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
         # check right
         for c in range(j+1, 8, 1):
-            if not self.board[i][c]:  # if square is empty
-                moves.append(Move([i, j], [i, c], self.board))
-            else:
-                if (self.board[i][c][0] == "w" and not self.whiteToMove) or \
-                        (self.board[i][c][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (0, 1):
+                if not self.board[i][c]:  # if square is empty
                     moves.append(Move([i, j], [i, c], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[i][c][0] == "w" and not self.whiteToMove) or \
+                            (self.board[i][c][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [i, c], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
         # check down
         for r in range(i+1, 8, 1):
-            if not self.board[r][j]:  # if square is empty
-                moves.append(Move([i, j], [r, j], self.board))
-            else:
-                if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
-                        (self.board[r][j][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (1, 0):
+                if not self.board[r][j]:  # if square is empty
                     moves.append(Move([i, j], [r, j], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[r][j][0] == "w" and not self.whiteToMove) or \
+                            (self.board[r][j][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [r, j], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
         # check left
         for c in range(j-1, -1, -1):
-            if not self.board[i][c]:  # if square is empty
-                moves.append(Move([i, j], [i, c], self.board))
-            else:
-                if (self.board[i][c][0] == "w" and not self.whiteToMove) or \
-                        (self.board[i][c][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (0, -1):
+                if not self.board[i][c]:  # if square is empty
                     moves.append(Move([i, j], [i, c], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[i][c][0] == "w" and not self.whiteToMove) or \
+                            (self.board[i][c][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [i, c], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
     def getKnightMoves(self, i, j, moves):
         """Generate all possible knight moves. """
