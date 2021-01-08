@@ -8,10 +8,10 @@ class State():
             np.array(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"]),
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
             np.array(["", "", "", "", "", "", "", ""]),
+            np.array(["bQ", "", "", "", "", "", "", ""]),
             np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["", "", "", "", "", "", "", "bQ"]),
             np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["wP", "wP", "wP", "wP", "wP", "wN", "wP", "wP"]),
+            np.array(["wP", "wP", "wP", "wB", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
 
@@ -119,7 +119,7 @@ class State():
 
         # We need to identify if the rook is pinned.
         # as well, if it is, we need to make sure that we can only
-        # move that piece in the direction of the pin
+        # move that piece in the direction of the pin (or away from it)
         isPinned = False
         pinDirection = ()  # direction the piece is being pinned from
 
@@ -213,61 +213,91 @@ class State():
 
     def getBishopMoves(self, i, j, moves):
         """Generate all possible bishop moves. """
+
+        # We need to identify if the bishop is pinned.
+        # as well, if it is, we need to make sure that we can only
+        # move that piece in the direction of the pin (or away from it)
+        isPinned = False
+        pinDirection = ()  # direction the piece is being pinned from
+
+        for idx, pin in enumerate(self.pins):
+            if pin[0] == i and pin[1] == j:
+                isPinned = True
+                pinDirection = (pin[2], pin[3])
+                self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
+                break
+
+        # When checking for all the pin directions for the bishop, we also need to
+        # allow the bishop to move toward (and away from) the pin, as both movements
+        # will continue to protect the king
+
         # check up-left
         r, c = i - 1, j - 1
         while r > -1 and c > -1:
-            if not self.board[r][c]:  # if square is empty
-                moves.append(Move([i, j], [r, c], self.board))
-            else:
-                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
-                        (self.board[r][c][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (-1, -1) or pinDirection == (1, 1):
+                if not self.board[r][c]:  # if square is empty
                     moves.append(Move([i, j], [r, c], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                            (self.board[r][c][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [r, c], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
-            r -= 1
-            c -= 1
+                r -= 1
+                c -= 1
+            else:
+                break
 
         # check up-right
         r, c = i - 1, j + 1
         while r > -1 and c < 8:
-            if not self.board[r][c]:
-                moves.append(Move([i, j], [r, c], self.board))
-            else:
-                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
-                        (self.board[r][c][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (-1, 1) or pinDirection == (1, -1):
+                if not self.board[r][c]:
                     moves.append(Move([i, j], [r, c], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                            (self.board[r][c][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [r, c], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
-            r -= 1
-            c += 1
+                r -= 1
+                c += 1
+            else:
+                break
 
         # check down-right
         r, c = i + 1, j + 1
         while r < 8 and c < 8:
-            if not self.board[r][c]:
-                moves.append(Move([i, j], [r, c], self.board))
-            else:
-                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
-                        (self.board[r][c][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (1, 1) or pinDirection == (-1, -1):
+                if not self.board[r][c]:
                     moves.append(Move([i, j], [r, c], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                            (self.board[r][c][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [r, c], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
-            r += 1
-            c += 1
+                r += 1
+                c += 1
+            else:
+                break
 
         # check down-left
         r, c = i + 1, j - 1
         while r < 8 and c > -1:
-            if not self.board[r][c]:
-                moves.append(Move([i, j], [r, c], self.board))
-            else:
-                if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
-                        (self.board[r][c][0] == "b" and self.whiteToMove):
+            if not isPinned or pinDirection == (1, -1) or pinDirection == (-1, 1):
+                if not self.board[r][c]:
                     moves.append(Move([i, j], [r, c], self.board))
-                break  # break out of the for loop since we can't keep checking further
+                else:
+                    if (self.board[r][c][0] == "w" and not self.whiteToMove) or \
+                            (self.board[r][c][0] == "b" and self.whiteToMove):
+                        moves.append(Move([i, j], [r, c], self.board))
+                    break  # break out of the for loop since we can't keep checking further
 
-            r += 1
-            c -= 1
+                r += 1
+                c -= 1
+            else:
+                break
 
     def getQueenMoves(self, i, j, moves):
         """Generate all possible queen moves. """
