@@ -11,7 +11,7 @@ class State():
             np.array(["", "", "", "", "", "", "", ""]),
             np.array(["", "", "", "", "", "", "", "bQ"]),
             np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["wP", "wP", "wP", "wP", "wP", "wR", "wP", "wP"]),
+            np.array(["wP", "wP", "wP", "wP", "wP", "wN", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
 
@@ -127,12 +127,18 @@ class State():
             if pin[0] == i and pin[1] == j:
                 isPinned = True
                 pinDirection = (pin[2], pin[3])
-                self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
+                if self.board[i][j][1] != "Q":  # NOT SURE WHY THIS CONDITION YET
+                    # NOT SURE WHY WE DO THIS YET
+                    self.pins.remove(self.pins[idx])
                 break
+
+        # When checking for all the pin directions for the rook, we also need to
+        # allow the rook to move toward (and away from) the pin, as both movements
+        # will continue to protect the king
 
         # check up
         for r in range(i-1, -1, -1):
-            if not isPinned or pinDirection == (-1, 0):
+            if not isPinned or pinDirection == (-1, 0) or pinDirection == (1, 0):
                 if not self.board[r][j]:  # if square is empty
                     moves.append(Move([i, j], [r, j], self.board))
                 else:
@@ -143,7 +149,7 @@ class State():
 
         # check right
         for c in range(j+1, 8, 1):
-            if not isPinned or pinDirection == (0, 1):
+            if not isPinned or pinDirection == (0, 1) or pinDirection == (1, 0):
                 if not self.board[i][c]:  # if square is empty
                     moves.append(Move([i, j], [i, c], self.board))
                 else:
@@ -154,7 +160,7 @@ class State():
 
         # check down
         for r in range(i+1, 8, 1):
-            if not isPinned or pinDirection == (1, 0):
+            if not isPinned or pinDirection == (1, 0) or pinDirection == (-1, 0):
                 if not self.board[r][j]:  # if square is empty
                     moves.append(Move([i, j], [r, j], self.board))
                 else:
@@ -165,7 +171,7 @@ class State():
 
         # check left
         for c in range(j-1, -1, -1):
-            if not isPinned or pinDirection == (0, -1):
+            if not isPinned or pinDirection == (0, -1) or pinDirection == (0, 1):
                 if not self.board[i][c]:  # if square is empty
                     moves.append(Move([i, j], [i, c], self.board))
                 else:
@@ -176,6 +182,23 @@ class State():
 
     def getKnightMoves(self, i, j, moves):
         """Generate all possible knight moves. """
+
+        # We need to identify if the knight is pinned.
+        # if it is, there is no way for us to capture the piece
+        # that's pinning it, so we need to stop it from moving
+
+        isPinned = False
+
+        for idx, pin in enumerate(self.pins):
+            if pin[0] == i and pin[1] == j:
+                isPinned = True
+                self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
+                break
+
+        # there are no possible moves for a knight if it is pinned by another piece
+        if isPinned:
+            return
+
         # all possible jumps in horiz/vert distance from current square
         jumps = [(-2, 1), (-1, 2), (1, 2), (2, 1),
                  (2, -1), (1, -2), (-1, -2), (-2, -1)]
