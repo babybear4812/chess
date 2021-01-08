@@ -73,9 +73,9 @@ class State():
         isPinned = False
         pinDirection = ()  # direction the piece is being pinned from
 
-        for idx, pin in enumerate(pins):
+        for idx, pin in enumerate(self.pins):
             if pin[0] == i and pin[1] == j:
-                piecePinned = True
+                isPinned = True
                 pinDirection = (pin[2], pin[3])
                 self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
                 break
@@ -91,11 +91,11 @@ class State():
 
             # check capture up-left, then up-right
             if j > 0 and self.board[i-1][j-1] and self.board[i-1][j-1][0] == "b":
-                if not isPinned or pinDirection = (-1, -1):
+                if not isPinned or pinDirection == (-1, -1):
                     # if the piece isn't pinned or it's pinned from the upper-left (from a bishop or queen)
                     moves.append(Move([i, j], [i-1, j-1], self.board))
             if j < 7 and self.board[i-1][j+1] and self.board[i-1][j+1][0] == "b":
-                if not isPinned or pinDirection = (-1, 1):
+                if not isPinned or pinDirection == (-1, 1):
                     moves.append(Move([i, j], [i-1, j+1], self.board))
 
         else:  # black pawns
@@ -297,9 +297,9 @@ class State():
                     if endPiece:
                         # and it's an ally piece
                         if endPiece[0] == allyColor:
-                            if not possiblePin:
+                            if not potentialPin:
                                 # if there hasn't been a pin yet, save it!
-                                possiblePin = (
+                                potentialPin = (
                                     endRow, endCol, direction[0], direction[1])
                             else:
                                 # otherwise, there's really no pin; we have multiple layers of protection
@@ -326,7 +326,7 @@ class State():
                                 (distance == 1 and pieceType == "P" and allyColor == "b" and (i == 6 or i == 7)) or \
                                 (distance == 1 and pieceType == "P" and enemyColor == "w" and (i == 4 or i == 5)) or \
                                     (distance == 1 and pieceType == "K"):
-                                if not possiblePin:
+                                if not potentialPin:
                                     # since there was no possible pin blocking this,
                                     # it must be a direct check
                                     inCheck = True
@@ -335,7 +335,7 @@ class State():
                                 else:
                                     # if there was a possible pin, we will  append it to actual pins
                                     # because it is clearly blocking a check
-                                    pins.append(possiblePin)
+                                    pins.append(potentialPin)
 
                                 break
                             else:
@@ -347,16 +347,16 @@ class State():
 
         # find any knight checks
         # note: there can NOT be any knight pins
-        jumps = [(-2, 1), (-1, 2), (1, 2), (2, 1),
-                 (2, -1), (1, -2), (-1, -2), (-2, -1)]
-        for x, y in jumps:
+        knightJumps = [(-2, 1), (-1, 2), (1, 2), (2, 1),
+                       (2, -1), (1, -2), (-1, -2), (-2, -1)]
+        for x, y in knightJumps:
             endRow = startRow + x
             endCol = startCol + y
 
             if -1 < endRow < 8 and -1 < endCol < 8:  # make sure we're on the board
                 endPiece = self.board[endRow][endCol]
                 # make sure piece is an enemy knight
-                if endPiece[0] == enemyColor and endPiece[1] == "N":
+                if endPiece and endPiece[0] == enemyColor and endPiece[1] == "N":
                     inCheck = True
                     checks.append((endRow, endCol, x, y))
 
@@ -367,7 +367,7 @@ class State():
 
         validMoves = []
         self.inCheck, self.pins, self.checks = self.findPinsAndChecks()
-
+        print(self.inCheck, self.pins, self.checks)
         kingRow = self.whiteKingPosition[0] if self.whiteToMove else self.blackKingPosition[0]
         kingCol = self.whiteKingPosition[1] if self.whiteToMove else self.blackKingPosition[1]
 
