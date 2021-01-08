@@ -24,7 +24,7 @@ class State():
         self.checkmate = False
         self.stalemate = False
 
-        self.incheck = False  # flag if current player is in check
+        self.inCheck = False  # flag if current player is in check
         self.pins = []  # list of all current pins
         self.checks = []  # list of all current checks
 
@@ -66,29 +66,53 @@ class State():
 
     def getPawnMoves(self, i, j, moves):
         """Generate all possible pawn moves. """
+
+        # We need to identify if the pawn is pinned.
+        # as well, if it is, we need to make sure that we can only
+        # move that piece in the direction of the pin (e.g. up toward a rook pinning from the top)
+        isPinned = False
+        pinDirection = ()  # direction the piece is being pinned from
+
+        for idx, pin in enumerate(pins):
+            if pin[0] == i and pin[1] == j:
+                piecePinned = True
+                pinDirection = (pin[2], pin[3])
+                self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
+                break
+
         if self.whiteToMove:  # white pawns
             if not self.board[i-1][j]:  # one square up
-                moves.append(Move([i, j], [i-1, j], self.board))
-                if i == 6 and not self.board[i-2][j]:  # two squares up
-                    moves.append(Move([i, j], [i-2, j], self.board))
+                if not isPinned or pinDirection == (-1, 0):
+                    # we can only make this move if the pawn isn't pinned,
+                    # or if it's moving up in the direction of the pin (from a rook or queen)
+                    moves.append(Move([i, j], [i-1, j], self.board))
+                    if i == 6 and not self.board[i-2][j]:  # two squares up
+                        moves.append(Move([i, j], [i-2, j], self.board))
 
             # check capture up-left, then up-right
             if j > 0 and self.board[i-1][j-1] and self.board[i-1][j-1][0] == "b":
-                moves.append(Move([i, j], [i-1, j-1], self.board))
+                if not isPinned or pinDirection = (-1, -1):
+                    # if the piece isn't pinned or it's pinned from the upper-left (from a bishop or queen)
+                    moves.append(Move([i, j], [i-1, j-1], self.board))
             if j < 7 and self.board[i-1][j+1] and self.board[i-1][j+1][0] == "b":
-                moves.append(Move([i, j], [i-1, j+1], self.board))
+                if not isPinned or pinDirection = (-1, 1):
+                    moves.append(Move([i, j], [i-1, j+1], self.board))
 
         else:  # black pawns
             if not self.board[i+1][j]:  # one square down
-                moves.append(Move([i, j], [i+1, j], self.board))
-                if i == 1 and not self.board[i+2][j]:  # two squares down
-                    moves.append(Move([i, j], [i+2, j], self.board))
+                if not isPinned or pinDirection == (1, 0):
+                    # notice direction of pin is reversed from white pawn logic above
+                    moves.append(Move([i, j], [i+1, j], self.board))
+                    if i == 1 and not self.board[i+2][j]:  # two squares down
+                        moves.append(Move([i, j], [i+2, j], self.board))
 
             # check capture down-left, then down-right
             if j > 0 and self.board[i+1][j-1] and self.board[i+1][j-1][0] == "w":
-                moves.append(Move([i, j], [i+1, j-1], self.board))
+                if not isPinned or pinDirection == (1, -1):
+                    moves.append(Move([i, j], [i+1, j-1], self.board))
             if j < 7 and self.board[i+1][j+1] and self.board[i+1][j+1][0] == "w":
-                moves.append(Move([i, j], [i+1, j+1], self.board))
+                if not isPinned or pinDirection == (1, 1):
+                    moves.append(Move([i, j], [i+1, j+1], self.board))
 
     def getRookMoves(self, i, j, moves):
         """Generate all possible rook moves. """
@@ -241,48 +265,195 @@ class State():
         # switch turns back if not under attack
         self.whiteToMove = not self.whiteToMove
 
+    def findPinsAndChecks(self):
+        """ Identifies all pins and checks on the king. """
+        inCheck = False
+        pins = []
+        checks = []
+
+        startRow = self.whiteKingPosition[0] if self.whiteToMove else self.blackKingPosition[0]
+        startCol = self.whiteKingPosition[1] if self.whiteToMove else self.blackKingPosition[1]
+        allyColor = "w" if self.whiteToMove else "b"
+        enemyColor = "b" if self.whiteToMove else "w"
+
+        # sorted by orthogonal directions, followed by diagonals
+        kingDirections = [(-1, 0), (0, 1), (1, 0), (0, -1),
+                          (-1, -1), (-1, 1), (1, 1), (1, -1)]
+
+        # this loop will check for all potential pins and checks
+        # from all pieces EXCEPT knights (done after for loop)
+        for i, direction in enumerate(kingDirections):
+            potentialPin = ()  # placeholder variable for a potential pin
+            for distance in range(1, 8):
+                # check all pieces in the given direction
+                endRow = startRow + direction[0] * distance
+                endCol = startCol + direction[1] * distance
+
+                # if the square is on the board
+                if -1 < endRow < 8 and -1 < endCol < 8:
+                    endPiece = self.board[endRow][endCol]
+
+                    # and there's a piece there
+                    if endPiece:
+                        # and it's an ally piece
+                        if endPiece[0] == allyColor:
+                            if not possiblePin:
+                                # if there hasn't been a pin yet, save it!
+                                possiblePin = (
+                                    endRow, endCol, direction[0], direction[1])
+                            else:
+                                # otherwise, there's really no pin; we have multiple layers of protection
+                                # we can break out of this direction and move onto the next one
+                                break
+                        else:
+                            # But if it's an enemy piece...
+                            # there are 6 potential enemy pieces that could be putting it into check:
+                            # 1) could be a rook (orthogonal)
+                            # 2) could be a bishop (diagonal)
+                            # 3) could be a queen (anywhere)
+                            # 4) could be a (white) pawn attacking upward
+                            # 5) could be a (black) pawn attacking downwward
+                            # 6) could be a knight (8 positions)
+
+                            pieceType = endPiece[1]
+
+                            # we will loop through all the directions and match them
+                            # up with the appropriate piece to identify potential pin
+                            # Note: The direction of the pawn movements are TOWARD the king, not away from him
+                            if (0 <= i <= 3 and pieceType == "R") or \
+                                (4 <= i <= 7 and pieceType == "B") or \
+                                (pieceType == "Q") or \
+                                (distance == 1 and pieceType == "P" and allyColor == "b" and (i == 6 or i == 7)) or \
+                                (distance == 1 and pieceType == "P" and enemyColor == "w" and (i == 4 or i == 5)) or \
+                                    (distance == 1 and pieceType == "K"):
+                                if not possiblePin:
+                                    # since there was no possible pin blocking this,
+                                    # it must be a direct check
+                                    inCheck = True
+                                    checks.append(
+                                        (endRow, endCol, direction[0], direction[1]))
+                                else:
+                                    # if there was a possible pin, we will  append it to actual pins
+                                    # because it is clearly blocking a check
+                                    pins.append(possiblePin)
+
+                                break
+                            else:
+                                # there is no check from the opponent
+                                break
+                else:
+                    # we are off the board
+                    break
+
+        # find any knight checks
+        # note: there can NOT be any knight pins
+        jumps = [(-2, 1), (-1, 2), (1, 2), (2, 1),
+                 (2, -1), (1, -2), (-1, -2), (-2, -1)]
+        for x, y in jumps:
+            endRow = startRow + x
+            endCol = startCol + y
+
+            if -1 < endRow < 8 and -1 < endCol < 8:  # make sure we're on the board
+                endPiece = self.board[endRow][endCol]
+                # make sure piece is an enemy knight
+                if endPiece[0] == enemyColor and endPiece[1] == "N":
+                    inCheck = True
+                    checks.append((endRow, endCol, x, y))
+
+        return inCheck, pins, checks
+
     def getValidMoves(self):
         """ Generates valid moves only. """
 
-        # 1) generate all possible moves
-        allMoves = self.getAllPossibleMoves()
         validMoves = []
+        self.inCheck, self.pins, self.checks = self.findPinsAndChecks()
 
-        for move in allMoves:
-            # 2) for each move, make the move
-            self.makeMove(move)
+        kingRow = self.whiteKingPosition[0] if self.whiteToMove else self.blackKingPosition[0]
+        kingCol = self.whiteKingPosition[1] if self.whiteToMove else self.blackKingPosition[1]
 
-            # 3) generate every opponent move
-            # 4) for each opponent move, see if it attacks our king
+        if self.inCheck:
+            # if there is a check, we need to be very clear about what moves are valid
+            if len(self.checks) == 1:
+                # in this case, there is a single check
+                # when there is a single check, the king may move, or we can block the check, or capture the piece
+                moves = self.getAllPossibleMoves()
+                checkRow, checkCol, checkDirectionX, checkDirectionY = self.checks[0]
+                pieceChecking = self.board[checkRow][checkCol]
 
-            # At the start of this function, we check all possible moves for 1 color (e.g. white)
-            # Then, we actually proceed to make the move, which would switch turns to black
-            # So, we now need to manually switch back to make sure it's white's move so that when
-            # we're determining if they're in check, we're looking at the white king
-            self.whiteToMove = not self.whiteToMove
+                # squares that pieces (apart from the king) can move to
+                movesThatBlockCheck = []
 
-            # 5) if king is not attacked, add it to valid moves
-            if not self.isInCheck():
-                validMoves.append(move)
+                # king must be moved or knight must be captured
+                if pieceChecking[1] == "N":
+                    movesThatBlockCheck.append((checkRow, checkCol))
+                else:
+                    for i in range(1, 8):
+                        square = (kingRow + checkDirectionX * i,
+                                  kingCol + checkDirectionY * i)
+                        movesThatBlockCheck.append(square)
+                        if square[0] == checkRow and square[1] == checkCol:
+                            break
 
-            # the undoMove function toggles player turn, so we need to manually toggle it back
-            self.undoMove()
-            self.whiteToMove = not self.whiteToMove
+                for move in moves:
+                    if move.pieceMoved[1] == "K":
+                        # if the king moved, he is not blocking the check but escaping it. this is valid
+                        validMoves.append(move)
+                    else:
+                        # if it's not the king that was moved,
+                        # then the piece that did move must be one of the moves that blocks the check
+                        if (move.endRow, move.endCol) in movesThatBlockCheck:
+                            validMoves.append(move)
 
-        # check for checkmate or stalemate
-        if not validMoves:
-            if self.isInCheck():
-                print('checkmate')
-                self.checkmate = True
             else:
-                print('stalemate')
-                self.stalemate = True
-        # else statement sets flags to False so we can undo moves if in check/stale mates
+                # in this case, there is a double check
+                # when there is a double check, the king must move no matter what
+                self.getKingMoves(kingRow, kingCol, moves)
         else:
-            self.checkmate = False
-            self.stalemate = False
+            # if there is no check, anything goes
+            # (pins are dealt with in the get<piece>Moves functions)
+            validMoves = self.getAllPossibleMoves()
 
         return validMoves
+
+        # # 1) generate all possible moves
+        # allMoves = self.getAllPossibleMoves()
+        # validMoves = []
+
+        # for move in allMoves:
+        #     # 2) for each move, make the move
+        #     self.makeMove(move)
+
+        #     # 3) generate every opponent move
+        #     # 4) for each opponent move, see if it attacks our king
+
+        #     # At the start of this function, we check all possible moves for 1 color (e.g. white)
+        #     # Then, we actually proceed to make the move, which would switch turns to black
+        #     # So, we now need to manually switch back to make sure it's white's move so that when
+        #     # we're determining if they're in check, we're looking at the white king
+        #     self.whiteToMove = not self.whiteToMove
+
+        #     # 5) if king is not attacked, add it to valid moves
+        #     if not self.isInCheck():
+        #         validMoves.append(move)
+
+        #     # the undoMove function toggles player turn, so we need to manually toggle it back
+        #     self.undoMove()
+        #     self.whiteToMove = not self.whiteToMove
+
+        # # check for checkmate or stalemate
+        # if not validMoves:
+        #     if self.isInCheck():
+        #         print('checkmate')
+        #         self.checkmate = True
+        #     else:
+        #         print('stalemate')
+        #         self.stalemate = True
+        # # else statement sets flags to False so we can undo moves if in check/stale mates
+        # else:
+        #     self.checkmate = False
+        #     self.stalemate = False
+
+        # return validMoves
 
     def getAllPossibleMoves(self):
         """Generates all possible moves. """
