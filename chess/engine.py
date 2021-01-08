@@ -8,10 +8,10 @@ class State():
             np.array(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"]),
             np.array(["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"]),
             np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["bQ", "", "", "", "", "", "", ""]),
             np.array(["", "", "", "", "", "", "", ""]),
             np.array(["", "", "", "", "", "", "", ""]),
-            np.array(["wP", "wP", "wP", "wB", "wP", "wP", "wP", "wP"]),
+            np.array(["", "", "", "", "", "", "", ""]),
+            np.array(["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"]),
             np.array(["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]),
         ])  # using numpy array for improved efficency when running AI bot
 
@@ -313,15 +313,34 @@ class State():
         self.getRookMoves(i, j, moves)
 
     def getKingMoves(self, i, j, moves):
-        for x in range(-1, 2):
-            for y in range(-1, 2):
-                r, c = i + x, j + y
-                if -1 < r < 8 and -1 < c < 8:  # if the adjacent cell exists
-                    # if the cell is empty or occupied by opponent
-                    if (not self.board[r][c]) or \
-                        ((self.board[r][c][0] == "w" and not self.whiteToMove) or
-                            (self.board[r][c][0] == "b" and self.whiteToMove)):
+        # after we make a king move, we need to make sure that it's not in check
+        # we're going to do this by simulating the king move, and then calling the `findPinsAndChecks` function
+        kingMoves = [(-1, -1), (-1, 0), (-1, 1), (0, 1),
+                     (1, 1), (1, 0), (1, -1), (0, -1)]
+        for x, y in kingMoves:
+            r, c = i + x, j + y
+            if -1 < r < 8 and -1 < c < 8:  # if the adjacent cell exists
+                endPiece = self.board[r][c]
+                # if the cell is empty or occupied by opponent
+                if (not endPiece) or \
+                    ((endPiece[0] == "w" and not self.whiteToMove) or
+                        (endPiece[0] == "b" and self.whiteToMove)):
+
+                    if self.whiteToMove:
+                        self.whiteKingPosition = (r, c)
+                    else:
+                        self.blackKingPosition = (r, c)
+
+                    inCheck, pins, checks = self.findPinsAndChecks()
+                    print("inCheck: ", inCheck, "len(pins): ",
+                          len(pins), "len(checks): ", len(checks))
+                    if not inCheck:
                         moves.append(Move([i, j], [r, c], self.board))
+
+                    if self.whiteToMove:
+                        self.whiteKingPosition = (i, j)
+                    else:
+                        self.blackKingPosition = (i, j)
 
     def isInCheck(self):
         """ Determine if player is in check. """
@@ -368,22 +387,27 @@ class State():
                 endRow = startRow + direction[0] * distance
                 endCol = startCol + direction[1] * distance
 
-                # if the square is on the board
+                # if the square is on the board...
                 if -1 < endRow < 8 and -1 < endCol < 8:
                     endPiece = self.board[endRow][endCol]
 
-                    # and there's a piece there
+                    # ...and there's a piece there...
                     if endPiece:
-                        # and it's an ally piece
+                        # ... and it's an ally piece ...
                         if endPiece[0] == allyColor:
-                            if not potentialPin:
-                                # if there hasn't been a pin yet, save it!
-                                potentialPin = (
-                                    endRow, endCol, direction[0], direction[1])
-                            else:
-                                # otherwise, there's really no pin; we have multiple layers of protection
-                                # we can break out of this direction and move onto the next one
-                                break
+                            # ... and it is NOT the king
+                            # (We need to add the king condition because the getKingMoves() function calls this after placing
+                            # a "phantom" king to test for any potential checks if the move was made.
+                            # We need to make sure that when this call is made that we aren't "protecting" our phantom king)
+                            if endPiece[1] != "K":
+                                if not potentialPin:
+                                    # if there hasn't been a pin yet, save it!
+                                    potentialPin = (
+                                        endRow, endCol, direction[0], direction[1])
+                                else:
+                                    # otherwise, there's really no pin if we already ahve a "potential pin";
+                                    # we have multiple layers of protection and can break out of this direction and move onto the next one
+                                    break
                         else:
                             # But if it's an enemy piece...
                             # there are 6 potential enemy pieces that could be putting it into check:
@@ -446,7 +470,7 @@ class State():
 
         validMoves = []
         self.inCheck, self.pins, self.checks = self.findPinsAndChecks()
-        print(self.inCheck, self.pins, self.checks)
+
         kingRow = self.whiteKingPosition[0] if self.whiteToMove else self.blackKingPosition[0]
         kingCol = self.whiteKingPosition[1] if self.whiteToMove else self.blackKingPosition[1]
 
@@ -492,6 +516,8 @@ class State():
             # (pins are dealt with in the get<piece>Moves functions)
             validMoves = self.getAllPossibleMoves()
 
+        print("numMoves: " + str(len(validMoves)),
+              "kingPosition: " + str(self.whiteKingPosition))
         return validMoves
 
         # # 1) generate all possible moves
