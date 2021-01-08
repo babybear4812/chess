@@ -246,6 +246,8 @@ class State():
                 r -= 1
                 c -= 1
             else:
+                # if pinned and the pin direction isn't in line with potential move,
+                # we need to break out and avoid an infinite loop
                 break
 
         # check up-right
@@ -263,6 +265,8 @@ class State():
                 r -= 1
                 c += 1
             else:
+                # if pinned and the pin direction isn't in line with potential move,
+                # we need to break out and avoid an infinite loop
                 break
 
         # check down-right
@@ -280,6 +284,8 @@ class State():
                 r += 1
                 c += 1
             else:
+                # if pinned and the pin direction isn't in line with potential move,
+                # we need to break out and avoid an infinite loop
                 break
 
         # check down-left
@@ -297,6 +303,8 @@ class State():
                 r += 1
                 c -= 1
             else:
+                # if pinned and the pin direction isn't in line with potential move,
+                # we need to break out and avoid an infinite loop
                 break
 
     def getQueenMoves(self, i, j, moves):
