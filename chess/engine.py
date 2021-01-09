@@ -52,6 +52,15 @@ class State():
         elif move.pieceMoved == "bP" and move.endRow == 7:
             self.board[move.endRow][move.endCol] = "bQ"
 
+        # update the potential en passant square
+        # by taking the average of the rows but keep the same col (i.e. the square that was skipped)
+        if move.pieceMoved[1] == "P" and abs(move.startRow - move.endRow) == 2:
+            self.enPassantSquare = (
+                (move.startRow + move.endRow) // 2, move.endCol)
+        # otherwise, if it wasn't a pawn that moved up two, en passant is reset
+        else:
+            self.enPassantSquare = ()
+
         print('en passant move: ', move.isEnPassantMove)
         # clear captured piece if it's an en passant move
         if move.isEnPassantMove:
@@ -87,6 +96,7 @@ class State():
 
             # We need to deal with undoing an en passant...
             if lastMove.isEnPassantMove:
+                print('i\'m in the undo')
                 self.board[endRow][endCol] = ""
                 self.board[lastMove.startRow][lastMove.endCol] = lastMove.pieceCaptured
                 self.enPassantSquare = (lastMove.endRow, lastMove.endCol)
@@ -519,7 +529,7 @@ class State():
         return inCheck, pins, checks
 
     def get_valid_moves(self):
-        """ Generates valid moves only. """
+        """Generates valid moves only. """
         validMoves = []
         self.inCheck, self.pins, self.checks = self.find_pins_and_checks()
 
@@ -562,11 +572,16 @@ class State():
             else:
                 # in this case, there is a double check
                 # when there is a double check, the king must move no matter what
-                self.get_king_moves(kingRow, kingCol, moves)
+                self.get_king_moves(kingRow, kingCol, validMoves)
         else:
             # if there is no check, anything goes
             # (pins are dealt with in the get<piece>Moves functions)
             validMoves = self.get_all_possible_moves()
+
+        # set checkmate if you are in check and there are no moves, and
+        # set stalement if you are not in check but there are no moves.
+        self.checkmate = not validMoves and self.inCheck
+        self.stalemate = not validMoves and not self.inCheck
 
         return validMoves
 
@@ -592,6 +607,10 @@ class State():
                             self.get_queen_moves(i, j, moves)
                         elif piece == "K":
                             self.get_king_moves(i, j, moves)
+        for move in moves:
+            if move.isEnPassantMove:
+                print(move.startRow, move.startCol,
+                      "-", move.endRow, move.endCol)
 
         return moves
 
