@@ -3,7 +3,7 @@ import pygame as pg
 import engine
 
 pg.init()  # initializing pygame
-WIDTH = HEIGHT = 400  # pygame screen size display
+WIDTH = HEIGHT = 800  # pygame screen size display
 SQ_SIZE = WIDTH // 8  # each square size of the 8x8 board
 MAX_FPS = 15  # for animations only
 PIECES = {}  # global dictionary giving access to all piece images
@@ -59,15 +59,15 @@ def main():
                 if len(prevClicks) == 2:
                     move = engine.Move(
                         prevClicks[0], prevClicks[1], state.board)
+                    for i in range(len(validMoves)):
+                        if move == validMoves[i]:
+                            state.make_move(move)
+                            moveMade = True
 
-                    if move in validMoves:
-                        state.make_move(move)
-                        moveMade = True
-
-                        # reset square clicked and previous clicks
-                        sqClicked = ()
-                        prevClicks = []
-                    else:
+                            # reset square clicked and previous clicks
+                            sqClicked = ()
+                            prevClicks = []
+                    if not moveMade:
                         # otherwise, if it wasn't a valid move, we won't change the square clicked
                         # but we will clear the previous clicks and only keep the current click made
                         prevClicks = [sqClicked]

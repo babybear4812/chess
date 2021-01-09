@@ -28,8 +28,10 @@ class State():
         self.pins = []  # list of all current pins
         self.checks = []  # list of all current checks
 
+        self.enPassantSquare = ()
+
     def make_move(self, move):
-        """Takes a move and executes it (not working with castling, en passant, promotion). """
+        """Takes a move and executes it (not working with castling, en passant). """
 
         # move piece from starting position to ending position
         self.board[move.startRow][move.startCol] = ""
@@ -50,6 +52,20 @@ class State():
         elif move.pieceMoved == "bP" and move.endRow == 7:
             self.board[move.endRow][move.endCol] = "bQ"
 
+        print('en passant move: ', move.isEnPassantMove)
+        # clear captured piece if it's an en passant move
+        if move.isEnPassantMove:
+            self.board[move.startRow][move.endCol] = ""
+
+        # update the potential en passant square
+        # by taking the average of the rows but keep the same col (i.e. the square that was skipped)
+        if move.pieceMoved[1] == "P" and abs(move.startRow - move.endRow) == 2:
+            self.enPassantSquare = (
+                (move.startRow + move.endRow) // 2, move.startCol)
+        # otherwise, if it wasn't a pawn that moved up two, en passant is reset
+        else:
+            self.enPassantSquare = ()
+
     def undo_move(self):
         """Takes the last move and undoes it. """
         if self.log:
@@ -69,12 +85,23 @@ class State():
             elif lastMove.pieceMoved == "bK":
                 self.blackKingPosition = (lastMove.startRow, lastMove.startCol)
 
+            # We need to deal with undoing an en passant...
+            if lastMove.isEnPassantMove:
+                self.board[endRow][endCol] = ""
+                self.board[lastMove.startRow][lastMove.endCol] = lastMove.pieceCaptured
+                self.enPassantSquare = (lastMove.endRow, lastMove.endCol)
+
+            # ... and undoing a pawn moving 2 spots
+            if lastMove.pieceMoved[1] == "P" and abs(lastMove.startCol - lastMove.endCol) == 2:
+                self.enPassantSquare = ()
+
     def get_pawn_moves(self, i, j, moves):
         """Generate all possible pawn moves. """
 
         # We need to identify if the pawn is pinned.
         # as well, if it is, we need to make sure that we can only
-        # move that piece in the direction of the pin
+        # move that piece in the direction of the pin.
+        # Finally, we'll also consider en passant moves
         isPinned = False
         pinDirection = ()  # direction the piece is being pinned from
 
@@ -85,7 +112,8 @@ class State():
                 self.pins.remove(self.pins[idx])  # NOT SURE WHY WE DO THIS YET
                 break
 
-        if self.whiteToMove:  # white pawns
+        # white pawns
+        if self.whiteToMove:
             if not self.board[i-1][j]:  # one square up
                 if not isPinned or pinDirection == (-1, 0):
                     # we can only make this move if the pawn isn't pinned,
@@ -95,15 +123,27 @@ class State():
                         moves.append(Move([i, j], [i-2, j], self.board))
 
             # check capture up-left, then up-right
-            if j > 0 and self.board[i-1][j-1] and self.board[i-1][j-1][0] == "b":
-                if not isPinned or pinDirection == (-1, -1):
-                    # if the piece isn't pinned or it's pinned from the upper-left (from a bishop or queen)
-                    moves.append(Move([i, j], [i-1, j-1], self.board))
-            if j < 7 and self.board[i-1][j+1] and self.board[i-1][j+1][0] == "b":
-                if not isPinned or pinDirection == (-1, 1):
-                    moves.append(Move([i, j], [i-1, j+1], self.board))
+            if j > 0:
+                if self.board[i-1][j-1] and self.board[i-1][j-1][0] == "b":
+                    if not isPinned or pinDirection == (-1, -1):
+                        # if the piece isn't pinned or it's pinned from the upper-left (from a bishop or queen)
+                        moves.append(Move([i, j], [i-1, j-1], self.board))
+                # if there's no enemy there, also check for en passant
+                elif (i-1, j-1) == self.enPassantSquare:
+                    # passing in optional parameter to indicate en passant
+                    moves.append(Move([i, j], [i-1, j-1], self.board, True))
 
-        else:  # black pawns
+            if j < 7:
+                if self.board[i-1][j+1] and self.board[i-1][j+1][0] == "b":
+                    if not isPinned or pinDirection == (-1, 1):
+                        moves.append(Move([i, j], [i-1, j+1], self.board))
+                # if there's no enemy there, also check for en passant
+                elif (i-1, j+1) == self.enPassantSquare:
+                    # passing in optional parameter to indicate en passant
+                    moves.append(Move([i, j], [i-1, j+1], self.board, True))
+
+        # black pawns
+        else:
             if not self.board[i+1][j]:  # one square down
                 if not isPinned or pinDirection == (1, 0):
                     # notice direction of pin is reversed from white pawn logic above
@@ -112,12 +152,21 @@ class State():
                         moves.append(Move([i, j], [i+2, j], self.board))
 
             # check capture down-left, then down-right
-            if j > 0 and self.board[i+1][j-1] and self.board[i+1][j-1][0] == "w":
-                if not isPinned or pinDirection == (1, -1):
-                    moves.append(Move([i, j], [i+1, j-1], self.board))
-            if j < 7 and self.board[i+1][j+1] and self.board[i+1][j+1][0] == "w":
-                if not isPinned or pinDirection == (1, 1):
-                    moves.append(Move([i, j], [i+1, j+1], self.board))
+            if j > 0:
+                if self.board[i+1][j-1] and self.board[i+1][j-1][0] == "w":
+                    if not isPinned or pinDirection == (1, -1):
+                        moves.append(Move([i, j], [i+1, j-1], self.board))
+                elif (i+1, j-1) == self.enPassantSquare:
+                    # passing in optional parameter to indicate en passant
+                    moves.append(Move([i, j], [i+1, j-1], self.board, True))
+
+            if j < 7:
+                if self.board[i+1][j+1] and self.board[i+1][j+1][0] == "w":
+                    if not isPinned or pinDirection == (1, 1):
+                        moves.append(Move([i, j], [i+1, j+1], self.board))
+                elif (i+1, j+1) == self.enPassantSquare:
+                    # passing in optional parameter to indicate en passant
+                    moves.append(Move([i, j], [i+1, j+1], self.board, True))
 
     def get_rook_moves(self, i, j, moves):
         """Generate all possible rook moves. """
@@ -471,7 +520,6 @@ class State():
 
     def get_valid_moves(self):
         """ Generates valid moves only. """
-
         validMoves = []
         self.inCheck, self.pins, self.checks = self.find_pins_and_checks()
 
@@ -522,46 +570,6 @@ class State():
 
         return validMoves
 
-        # # 1) generate all possible moves
-        # allMoves = self.get_all_possible_moves()
-        # validMoves = []
-
-        # for move in allMoves:
-        #     # 2) for each move, make the move
-        #     self.make_move(move)
-
-        #     # 3) generate every opponent move
-        #     # 4) for each opponent move, see if it attacks our king
-
-        #     # At the start of this function, we check all possible moves for 1 color (e.g. white)
-        #     # Then, we actually proceed to make the move, which would switch turns to black
-        #     # So, we now need to manually switch back to make sure it's white's move so that when
-        #     # we're determining if they're in check, we're looking at the white king
-        #     self.whiteToMove = not self.whiteToMove
-
-        #     # 5) if king is not attacked, add it to valid moves
-        #     if not self.is_in_check():
-        #         validMoves.append(move)
-
-        #     # the undo_move function toggles player turn, so we need to manually toggle it back
-        #     self.undo_move()
-        #     self.whiteToMove = not self.whiteToMove
-
-        # # check for checkmate or stalemate
-        # if not validMoves:
-        #     if self.is_in_check():
-        #         print('checkmate')
-        #         self.checkmate = True
-        #     else:
-        #         print('stalemate')
-        #         self.stalemate = True
-        # # else statement sets flags to False so we can undo moves if in check/stale mates
-        # else:
-        #     self.checkmate = False
-        #     self.stalemate = False
-
-        # return validMoves
-
     def get_all_possible_moves(self):
         """Generates all possible moves. """
         moves = []
@@ -589,23 +597,22 @@ class State():
 
 
 class Move():
-    def __init__(self, startSq, endSq, board):
+    def __init__(self, startSq, endSq, board, isEnPassantMove=False):
         self.startRow = startSq[0]
         self.startCol = startSq[1]
         self.endRow = endSq[0]
         self.endCol = endSq[1]
+
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
-        self.rankToRow = {"1": 7, "2": 6, "3": 5,
-                          "4": 4, "5": 3, "6": 2, "7": 1, "8": 0}
-        self.rowToRank = {val: key for key, val in self.rankToRow.items()}
-        self.fileToCol = {"a": 0, "b": 1, "c": 2,
-                          "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
-        self.colToFile = {val: key for key, val in self.fileToCol.items()}
+
+        self.isEnPassantMove = isEnPassantMove
+        if self.isEnPassantMove:
+            self.pieceCaptured = "bP" if self.pieceMoved == "wP" else "wP"
 
     def __eq__(self, other):
         """
-        Overriding equal so we can compare two move objects.
+        Overriding equal so we can more easily compare two move objects.
         We need to compare our starting and ending position (x and y coordinates)
         to the starting and ending postion of the possible valid move we're comparing it to.
         Since they are both lists, we can not simply check equality regularly
@@ -617,8 +624,22 @@ class Move():
                 self.endCol == other.endCol
         return False  # not sure why this is here
 
-    def get_chess_notation(self):
-        """Converting array indices to proper chess notation. """
+
+"""
+Old code for conversion to chess notation:
+
+self.rankToRow = {"1": 7, "2": 6, "3": 5,
+                          "4": 4, "5": 3, "6": 2, "7": 1, "8": 0}
+self.rowToRank = {val: key for key, val in self.rankToRow.items()}
+self.fileToCol = {"a": 0, "b": 1, "c": 2,
+                    "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
+self.colToFile = {val: key for key, val in self.fileToCol.items()}
+
+
+def get_chess_notation(self):
+        #Converting array indices to proper chess notation.
         start = self.colToFile[self.startCol] + self.rowToRank[self.startRow]
         end = self.colToFile[self.endCol] + self.rowToRank[self.endRow]
         return start + "-" + end
+
+"""
