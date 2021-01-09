@@ -24,7 +24,7 @@ def main():
 
     clock = pg.time.Clock()  # create Clock object to track time
     state = engine.State()  # instance of State class from engine.py
-    validMoves = state.getValidMoves()  # list containing all possible valid moves
+    validMoves = state.get_valid_moves()  # list containing all possible valid moves
     moveMade = False  # flag if move is made
 
     import_pieces()  # import pieces into global PIECES dictionary
@@ -61,7 +61,7 @@ def main():
                         prevClicks[0], prevClicks[1], state.board)
 
                     if move in validMoves:
-                        state.makeMove(move)
+                        state.make_move(move)
                         moveMade = True
 
                         # reset square clicked and previous clicks
@@ -74,13 +74,13 @@ def main():
 
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_z:
-                    state.undoMove()
+                    state.undo_move()
                     # we will consider this a move made so that it will trigger validMove recalculation
                     moveMade = True
 
         # if a move was made, generate new set of valid moves and reset flag
         if moveMade:
-            validMoves = state.getValidMoves()
+            validMoves = state.get_valid_moves()
             moveMade = False
 
         draw_state(screen, state)

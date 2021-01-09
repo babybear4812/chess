@@ -28,7 +28,7 @@ class State():
         self.pins = []  # list of all current pins
         self.checks = []  # list of all current checks
 
-    def makeMove(self, move):
+    def make_move(self, move):
         """Takes a move and executes it (not working with castling, en passant, promotion). """
 
         # move piece from starting position to ending position
@@ -44,8 +44,13 @@ class State():
             self.whiteKingPosition = (move.endRow, move.endCol)
         elif move.pieceMoved == "bK":
             self.blackKingPosition = (move.endRow, move.endCol)
+        # promote pawn to queen if it reaches the final row
+        elif move.pieceMoved == "wP" and move.endRow == 0:
+            self.board[move.endRow][move.endCol] = "wQ"
+        elif move.pieceMoved == "bP" and move.endRow == 7:
+            self.board[move.endRow][move.endCol] = "bQ"
 
-    def undoMove(self):
+    def undo_move(self):
         """Takes the last move and undoes it. """
         if self.log:
             # remove last move from log, if one exists
@@ -64,7 +69,7 @@ class State():
             elif lastMove.pieceMoved == "bK":
                 self.blackKingPosition = (lastMove.startRow, lastMove.startCol)
 
-    def getPawnMoves(self, i, j, moves):
+    def get_pawn_moves(self, i, j, moves):
         """Generate all possible pawn moves. """
 
         # We need to identify if the pawn is pinned.
@@ -114,7 +119,7 @@ class State():
                 if not isPinned or pinDirection == (1, 1):
                     moves.append(Move([i, j], [i+1, j+1], self.board))
 
-    def getRookMoves(self, i, j, moves):
+    def get_rook_moves(self, i, j, moves):
         """Generate all possible rook moves. """
 
         # We need to identify if the rook is pinned.
@@ -180,7 +185,7 @@ class State():
                         moves.append(Move([i, j], [i, c], self.board))
                     break  # break out of the for loop since we can't keep checking further
 
-    def getKnightMoves(self, i, j, moves):
+    def get_knight_moves(self, i, j, moves):
         """Generate all possible knight moves. """
 
         # We need to identify if the knight is pinned.
@@ -211,7 +216,7 @@ class State():
                         (self.board[r][c][0] == "b" and self.whiteToMove)):
                     moves.append(Move([i, j], [r, c], self.board))
 
-    def getBishopMoves(self, i, j, moves):
+    def get_bishop_moves(self, i, j, moves):
         """Generate all possible bishop moves. """
 
         # We need to identify if the bishop is pinned.
@@ -307,14 +312,14 @@ class State():
                 # we need to break out and avoid an infinite loop
                 break
 
-    def getQueenMoves(self, i, j, moves):
+    def get_queen_moves(self, i, j, moves):
         """Generate all possible queen moves. """
-        self.getBishopMoves(i, j, moves)
-        self.getRookMoves(i, j, moves)
+        self.get_bishop_moves(i, j, moves)
+        self.get_rook_moves(i, j, moves)
 
-    def getKingMoves(self, i, j, moves):
+    def get_king_moves(self, i, j, moves):
         # after we make a king move, we need to make sure that it's not in check
-        # we're going to do this by simulating the king move, and then calling the `findPinsAndChecks` function
+        # we're going to do this by simulating the king move, and then calling the `find_pins_and_checks` function
         kingMoves = [(-1, -1), (-1, 0), (-1, 1), (0, 1),
                      (1, 1), (1, 0), (1, -1), (0, -1)]
         for x, y in kingMoves:
@@ -331,9 +336,8 @@ class State():
                     else:
                         self.blackKingPosition = (r, c)
 
-                    inCheck, pins, checks = self.findPinsAndChecks()
-                    print("inCheck: ", inCheck, "len(pins): ",
-                          len(pins), "len(checks): ", len(checks))
+                    inCheck, pins, checks = self.find_pins_and_checks()
+
                     if not inCheck:
                         moves.append(Move([i, j], [r, c], self.board))
 
@@ -342,19 +346,19 @@ class State():
                     else:
                         self.blackKingPosition = (i, j)
 
-    def isInCheck(self):
+    def is_in_check(self):
         """ Determine if player is in check. """
         if self.whiteToMove:  # examine white king
-            return self.isUnderAttack(self.whiteKingPosition[0], self.whiteKingPosition[1])
+            return self.is_under_attack(self.whiteKingPosition[0], self.whiteKingPosition[1])
         else:  # examine black king
-            return self.isUnderAttack(self.blackKingPosition[0], self.blackKingPosition[1])
+            return self.is_under_attack(self.blackKingPosition[0], self.blackKingPosition[1])
 
-    def isUnderAttack(self, i, j):
+    def is_under_attack(self, i, j):
         """ Determine if a specific square is under attack. """
 
         # switch turns to validate opponent's possible moves
         self.whiteToMove = not self.whiteToMove
-        opponentMoves = self.getAllPossibleMoves()
+        opponentMoves = self.get_all_possible_moves()
         for move in opponentMoves:
             if move.endRow == i and move.endCol == j:
                 self.whiteToMove = not self.whiteToMove  # switch turns back
@@ -363,7 +367,7 @@ class State():
         # switch turns back if not under attack
         self.whiteToMove = not self.whiteToMove
 
-    def findPinsAndChecks(self):
+    def find_pins_and_checks(self):
         """ Identifies all pins and checks on the king. """
         inCheck = False
         pins = []
@@ -396,7 +400,7 @@ class State():
                         # ... and it's an ally piece ...
                         if endPiece[0] == allyColor:
                             # ... and it is NOT the king
-                            # (We need to add the king condition because the getKingMoves() function calls this after placing
+                            # (We need to add the king condition because the get_king_moves() function calls this after placing
                             # a "phantom" king to test for any potential checks if the move was made.
                             # We need to make sure that when this call is made that we aren't "protecting" our phantom king)
                             if endPiece[1] != "K":
@@ -465,11 +469,11 @@ class State():
 
         return inCheck, pins, checks
 
-    def getValidMoves(self):
+    def get_valid_moves(self):
         """ Generates valid moves only. """
 
         validMoves = []
-        self.inCheck, self.pins, self.checks = self.findPinsAndChecks()
+        self.inCheck, self.pins, self.checks = self.find_pins_and_checks()
 
         kingRow = self.whiteKingPosition[0] if self.whiteToMove else self.blackKingPosition[0]
         kingCol = self.whiteKingPosition[1] if self.whiteToMove else self.blackKingPosition[1]
@@ -479,7 +483,7 @@ class State():
             if len(self.checks) == 1:
                 # in this case, there is a single check
                 # when there is a single check, the king may move, or we can block the check, or capture the piece
-                moves = self.getAllPossibleMoves()
+                moves = self.get_all_possible_moves()
                 checkRow, checkCol, checkDirectionX, checkDirectionY = self.checks[0]
                 pieceChecking = self.board[checkRow][checkCol]
 
@@ -510,23 +514,21 @@ class State():
             else:
                 # in this case, there is a double check
                 # when there is a double check, the king must move no matter what
-                self.getKingMoves(kingRow, kingCol, moves)
+                self.get_king_moves(kingRow, kingCol, moves)
         else:
             # if there is no check, anything goes
             # (pins are dealt with in the get<piece>Moves functions)
-            validMoves = self.getAllPossibleMoves()
+            validMoves = self.get_all_possible_moves()
 
-        print("numMoves: " + str(len(validMoves)),
-              "kingPosition: " + str(self.whiteKingPosition))
         return validMoves
 
         # # 1) generate all possible moves
-        # allMoves = self.getAllPossibleMoves()
+        # allMoves = self.get_all_possible_moves()
         # validMoves = []
 
         # for move in allMoves:
         #     # 2) for each move, make the move
-        #     self.makeMove(move)
+        #     self.make_move(move)
 
         #     # 3) generate every opponent move
         #     # 4) for each opponent move, see if it attacks our king
@@ -538,16 +540,16 @@ class State():
         #     self.whiteToMove = not self.whiteToMove
 
         #     # 5) if king is not attacked, add it to valid moves
-        #     if not self.isInCheck():
+        #     if not self.is_in_check():
         #         validMoves.append(move)
 
-        #     # the undoMove function toggles player turn, so we need to manually toggle it back
-        #     self.undoMove()
+        #     # the undo_move function toggles player turn, so we need to manually toggle it back
+        #     self.undo_move()
         #     self.whiteToMove = not self.whiteToMove
 
         # # check for checkmate or stalemate
         # if not validMoves:
-        #     if self.isInCheck():
+        #     if self.is_in_check():
         #         print('checkmate')
         #         self.checkmate = True
         #     else:
@@ -560,7 +562,7 @@ class State():
 
         # return validMoves
 
-    def getAllPossibleMoves(self):
+    def get_all_possible_moves(self):
         """Generates all possible moves. """
         moves = []
 
@@ -571,17 +573,17 @@ class State():
                             (self.board[i][j][0] == "b" and not self.whiteToMove):
                         piece = self.board[i][j][1]
                         if piece == "P":
-                            self.getPawnMoves(i, j, moves)
+                            self.get_pawn_moves(i, j, moves)
                         elif piece == "R":
-                            self.getRookMoves(i, j, moves)
+                            self.get_rook_moves(i, j, moves)
                         elif piece == "N":
-                            self.getKnightMoves(i, j, moves)
+                            self.get_knight_moves(i, j, moves)
                         elif piece == "B":
-                            self.getBishopMoves(i, j, moves)
+                            self.get_bishop_moves(i, j, moves)
                         elif piece == "Q":
-                            self.getQueenMoves(i, j, moves)
+                            self.get_queen_moves(i, j, moves)
                         elif piece == "K":
-                            self.getKingMoves(i, j, moves)
+                            self.get_king_moves(i, j, moves)
 
         return moves
 
@@ -615,7 +617,7 @@ class Move():
                 self.endCol == other.endCol
         return False  # not sure why this is here
 
-    def getChessNotation(self):
+    def get_chess_notation(self):
         """Converting array indices to proper chess notation. """
         start = self.colToFile[self.startCol] + self.rowToRank[self.startRow]
         end = self.colToFile[self.endCol] + self.rowToRank[self.endRow]
