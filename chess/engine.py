@@ -102,7 +102,7 @@ class State():
                 self.enPassantSquare = (lastMove.endRow, lastMove.endCol)
 
             # ... and undoing a pawn moving 2 spots
-            if lastMove.pieceMoved[1] == "P" and abs(lastMove.startCol - lastMove.endCol) == 2:
+            if lastMove.pieceMoved[1] == "P" and abs(lastMove.startRow - lastMove.endRow) == 2:
                 self.enPassantSquare = ()
 
     def get_pawn_moves(self, i, j, moves):
@@ -152,6 +152,8 @@ class State():
                     # passing in optional parameter to indicate en passant
                     moves.append(Move([i, j], [i-1, j+1], self.board, True))
 
+            print('black self.enPassantSquare: ', self.enPassantSquare)
+
         # black pawns
         else:
             if not self.board[i+1][j]:  # one square down
@@ -177,6 +179,8 @@ class State():
                 elif (i+1, j+1) == self.enPassantSquare:
                     # passing in optional parameter to indicate en passant
                     moves.append(Move([i, j], [i+1, j+1], self.board, True))
+
+            print('white self.enPassantSquare: ', self.enPassantSquare)
 
     def get_rook_moves(self, i, j, moves):
         """Generate all possible rook moves. """
