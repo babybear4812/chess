@@ -49,13 +49,17 @@ class State():
         self.whiteToMove = not self.whiteToMove
 
         """
-        Update king locations and pawn promotions
+        Updating King's Location:
         """
-        # update king's location if needed
+        # update king's location (if needed)
         if move.pieceMoved == "wK":
             self.whiteKingPosition = (move.endRow, move.endCol)
         elif move.pieceMoved == "bK":
             self.blackKingPosition = (move.endRow, move.endCol)
+
+        """
+        Updating Pawn Promotion:
+        """
         # promote pawn to queen if it reaches the final row
         elif move.pieceMoved == "wP" and move.endRow == 0:
             self.board[move.endRow][move.endCol] = "wQ"
@@ -63,7 +67,7 @@ class State():
             self.board[move.endRow][move.endCol] = "bQ"
 
         """
-        Update en passant information.
+        Updating En Passant Information:
         NTE TO SELF: I SHOULD PROBABLY MODULARIZE THIS INTO ITS OWN FUNCTION
         """
         # update the potential en passant square
@@ -89,11 +93,16 @@ class State():
             self.enPassantSquare = ()
 
         """
-        Update castling information. 
+        Updating Castling Information:
         """
-        self.updateCastleRights(move)
+        # call function to update the current rights
+        self.updateCastlingRights(move)
 
-    def updateCastleRights(move):
+        # append a new instance of those rights into the log (as opposed to just a reference to the current instance)
+        self.castlingRightsLog.append(CastlingRights(self.currentCastlingRights.whiteKingSide, self.currentCastlingRights.whiteQueenSide,
+                                                     self.currentCastlingRights.blackKingSide, self.currentCastlingRights.blackQueenSide))
+
+    def updateCastlingRights(move):
         """Helper function that  updates castling information when either a rook or a king is moved. """
 
         if move.pieceMoved == "wK":
@@ -138,12 +147,19 @@ class State():
             # undo turn change
             self.whiteToMove = not self.whiteToMove
 
+            """
+            Undoing King's Location Update:
+            """
+
             # update king's location if needed
             if lastMove.pieceMoved == "wK":
                 self.whiteKingPosition = (lastMove.startRow, lastMove.startCol)
             elif lastMove.pieceMoved == "bK":
                 self.blackKingPosition = (lastMove.startRow, lastMove.startCol)
 
+            """
+            Undoing En Passant:
+            """
             # We need to deal with undoing an en passant...
             if lastMove.isEnPassantMove:
                 self.board[endRow][endCol] = ""
@@ -153,6 +169,14 @@ class State():
             # ... and undoing a pawn moving 2 spots
             if lastMove.pieceMoved[1] == "P" and abs(lastMove.startRow - lastMove.endRow) == 2:
                 self.enPassantSquare = ()
+
+            """
+            Undoing Castling Rights:
+            """
+            # remove castle rights from move being undone
+            self.castlingRightsLog.pop()
+            # set castling rights to what they used to be before the previous move
+            self.currentCastlingRights = self.castlingRightsLog[-1]
 
     def get_pawn_moves(self, i, j, moves):
         """Generate all possible pawn moves. """
