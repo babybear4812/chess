@@ -61,7 +61,7 @@ def main():
                         prevClicks[0], prevClicks[1], state.board)
                     for i in range(len(validMoves)):
                         if move == validMoves[i]:
-                            state.make_move(move)
+                            state.make_move(validMoves[i])
                             moveMade = True
 
                             # reset square clicked and previous clicks

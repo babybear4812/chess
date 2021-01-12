@@ -198,7 +198,7 @@ class State():
                 if lastMove.endCol - lastMove.startCol == 2:
                     # grab current position of rook and move it back to its old position
                     self.board[lastMove.endRow][lastMove.endCol +
-                                                1] = self.board[lastMove.endRow][endCol-1]
+                                                1] = self.board[lastMove.endRow][lastMove.endCol-1]
                     # clear the rook's old position
                     self.board[lastMove.endRow][lastMove.endCol-1] = ""
 
