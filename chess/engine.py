@@ -3,6 +3,8 @@ import numpy as np
 
 
 class State():
+    """Stores the state of the game, and all the chess logic. """
+
     def __init__(self):
         self.board = np.array([
             np.array(["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"]),
@@ -30,6 +32,11 @@ class State():
 
         self.enPassantSquare = ()
 
+        # when initializing the castling rights log, we're creating a new Castling Rights instance, as opposed to using
+        # currentCastlingRights, so that we're storing a brand new object and not a reference to one that may be modified
+        self.currentCastlingRights = CastlingRights(True, True, True, True)
+        self.castlingRightsLog = [CastlingRights(True, True, True, True)]
+
     def make_move(self, move):
         """Takes a move and executes it (not working with castling, en passant). """
 
@@ -41,6 +48,9 @@ class State():
         self.log.append(move)
         self.whiteToMove = not self.whiteToMove
 
+        """
+        Update king locations and pawn promotions
+        """
         # update king's location if needed
         if move.pieceMoved == "wK":
             self.whiteKingPosition = (move.endRow, move.endCol)
@@ -52,6 +62,10 @@ class State():
         elif move.pieceMoved == "bP" and move.endRow == 7:
             self.board[move.endRow][move.endCol] = "bQ"
 
+        """
+        Update en passant information.
+        NTE TO SELF: I SHOULD PROBABLY MODULARIZE THIS INTO ITS OWN FUNCTION
+        """
         # update the potential en passant square
         # by taking the average of the rows but keep the same col (i.e. the square that was skipped)
         if move.pieceMoved[1] == "P" and abs(move.startRow - move.endRow) == 2:
@@ -61,7 +75,6 @@ class State():
         else:
             self.enPassantSquare = ()
 
-        print('en passant move: ', move.isEnPassantMove)
         # clear captured piece if it's an en passant move
         if move.isEnPassantMove:
             self.board[move.startRow][move.endCol] = ""
@@ -74,6 +87,43 @@ class State():
         # otherwise, if it wasn't a pawn that moved up two, en passant is reset
         else:
             self.enPassantSquare = ()
+
+        """
+        Update castling information. 
+        """
+        self.updateCastleRights(move)
+
+    def updateCastleRights(move):
+        """Helper function that  updates castling information when either a rook or a king is moved. """
+
+        if move.pieceMoved == "wK":
+            # white king has been moved
+            self.currentCastlingRights.whiteKingSide = False
+            self.currentCastlingRights.whiteQueenSide = False
+        elif move.pieceMoved = "bK":
+            # black king has been moved
+            self.currentCastlingRights.blackKingSide = False
+            self.currentCastlingRights.blackQueenSide = False
+        elif move.pieceMoved == "wR":
+            # white rook has been moved
+            # (we need to ensure we're starting from the initial position with the rook)
+            if move.startRow == 7:
+                if move.startCol == 0:
+                    # queen side rook (left)
+                    self.currentCastlingRights.whiteQueenSide = False
+                elif move.startCol == 7:
+                    # king side rook (right)
+                    self.currentCastlingRights.whiteKingSide = False
+        elif move.pieceMoved == "bR":
+            # black rook has been moved
+            # (we need to ensure we're starting from the initial position with the rook)
+            if move.startRow == 0:
+                if move.startCol == 0:
+                    # queen side rook (left)
+                    self.currentCastlingRights.blackQueenSide = False
+                elif move.startCol == 7:
+                    # king side rook (right)
+                    self.currentCastlingRights.blackKingSide = False
 
     def undo_move(self):
         """Takes the last move and undoes it. """
@@ -96,7 +146,6 @@ class State():
 
             # We need to deal with undoing an en passant...
             if lastMove.isEnPassantMove:
-                print('i\'m in the undo')
                 self.board[endRow][endCol] = ""
                 self.board[lastMove.startRow][lastMove.endCol] = lastMove.pieceCaptured
                 self.enPassantSquare = (lastMove.endRow, lastMove.endCol)
@@ -152,8 +201,6 @@ class State():
                     # passing in optional parameter to indicate en passant
                     moves.append(Move([i, j], [i-1, j+1], self.board, True))
 
-            print('black self.enPassantSquare: ', self.enPassantSquare)
-
         # black pawns
         else:
             if not self.board[i+1][j]:  # one square down
@@ -179,8 +226,6 @@ class State():
                 elif (i+1, j+1) == self.enPassantSquare:
                     # passing in optional parameter to indicate en passant
                     moves.append(Move([i, j], [i+1, j+1], self.board, True))
-
-            print('white self.enPassantSquare: ', self.enPassantSquare)
 
     def get_rook_moves(self, i, j, moves):
         """Generate all possible rook moves. """
@@ -611,15 +656,13 @@ class State():
                             self.get_queen_moves(i, j, moves)
                         elif piece == "K":
                             self.get_king_moves(i, j, moves)
-        for move in moves:
-            if move.isEnPassantMove:
-                print(move.startRow, move.startCol,
-                      "-", move.endRow, move.endCol)
 
         return moves
 
 
 class Move():
+    """Creates move instances that contain information about the piece moved, its location, what it captured, and if it was en passant. """
+
     def __init__(self, startSq, endSq, board, isEnPassantMove=False):
         self.startRow = startSq[0]
         self.startCol = startSq[1]
@@ -646,6 +689,18 @@ class Move():
                 self.startCol == other.startCol and \
                 self.endCol == other.endCol
         return False  # not sure why this is here
+
+
+class CastlingRights():
+    """ 
+    An object containing information about whether any of the 4 castling possibilities are available:
+    white king side, white queen side, black king side, black queen side
+    """
+    def __init__(whiteKingSide, whiteQueenSide, blackKingSide, blackQueenSide):
+        self.whiteKingSide = whiteKingSide
+        self.whiteQueenSide = whiteQueenSide
+        self.blackKingSide = blackKingSide
+        self.blackQueenSide = blackQueenSide
 
 
 """
