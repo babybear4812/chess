@@ -98,13 +98,13 @@ class State():
                 # by putting it 1 unit left of the king
                 # and clearing its old spot
                 self.board[move.endRow][move.endCol -
-                                        1] = self.board[move.endRow][endCol+1]
+                                        1] = self.board[move.endRow][move.endCol+1]
                 self.board[move.endRow][move.endCol+1] = ""
 
             # otherwise, moved to the left (queen side castle)
             else:
                 self.board[move.endRow][move.endCol +
-                                        1] = self.board[move.endRow][endCol-2]
+                                        1] = self.board[move.endRow][move.endCol-2]
                 self.board[move.endRow][move.endCol-2] = ""
 
         # call function to update the current rights
@@ -535,7 +535,7 @@ class State():
                 # 3a) Check that the squares are not under attack
                 if not self.is_under_attack(i, j+1) and not self.is_under_attack(i, j+2):
                     moves.append(
-                        Move([i, j], [i, j + 2], self.board, isCastleMove=True))
+                        Move([i, j], [i, j+2], self.board, isCastleMove=True))
 
         # 2b) Check queen side spots to make sure they're clear
         if (self.whiteToMove and self.currentCastlingRights.whiteQueenSide) or \
@@ -546,7 +546,7 @@ class State():
                     # Note that since the king never passes through the 3rd square to its right,
                     # we don't need to check whether that square is under attack
                     moves.append(
-                        Move([i, j], [i, j - 2], self.board, isCastleMove=True))
+                        Move([i, j], [i, j-2], self.board, isCastleMove=True))
 
         # 4) Note that the condition of king / rook not having made prior moves is checked when we
         # examine the self.currentCastlingRights object.
@@ -740,6 +740,10 @@ class State():
         self.checkmate = not validMoves and self.inCheck
         self.stalemate = not validMoves and not self.inCheck
 
+        for move in validMoves:
+            if move.isCastleMove:
+                print('castle move found: ', move.startRow, move.startCol,
+                      move.endRow, move.endCol, move.isCastleMove)
         return validMoves
 
     def get_all_possible_moves(self):
@@ -769,7 +773,15 @@ class State():
 
 
 class Move():
-    """Creates move instances that contain information about the piece moved, its location, what it captured, and if it was en passant. """
+    """
+    Creates move instances that contain information about:
+    1) the piece's starting location
+    2) the piece's ending location
+    3) what piece was moved
+    4) what piece it captured
+    5) if it was en passant
+    6) if it was a castle
+    """
 
     def __init__(self, startSq, endSq, board, isEnPassantMove=False, isCastleMove=False):
         self.startRow = startSq[0]
@@ -804,7 +816,10 @@ class Move():
 class CastlingRights():
     """ 
     An object containing information about whether any of the 4 castling possibilities are available:
-    white king side, white queen side, black king side, black queen side
+    1) white king side
+    2) white queen side
+    3) black king side
+    4) black queen side
     """
 
     def __init__(self, whiteKingSide, whiteQueenSide, blackKingSide, blackQueenSide):
