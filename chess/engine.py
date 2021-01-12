@@ -49,17 +49,13 @@ class State():
         self.whiteToMove = not self.whiteToMove
 
         """
-        Updating King's Location:
+        Updating King's Location and Pawn Promotion:
         """
         # update king's location (if needed)
         if move.pieceMoved == "wK":
             self.whiteKingPosition = (move.endRow, move.endCol)
         elif move.pieceMoved == "bK":
             self.blackKingPosition = (move.endRow, move.endCol)
-
-        """
-        Updating Pawn Promotion:
-        """
         # promote pawn to queen if it reaches the final row
         elif move.pieceMoved == "wP" and move.endRow == 0:
             self.board[move.endRow][move.endCol] = "wQ"
@@ -125,7 +121,7 @@ class State():
             # white king has been moved
             self.currentCastlingRights.whiteKingSide = False
             self.currentCastlingRights.whiteQueenSide = False
-        elif move.pieceMoved = "bK":
+        elif move.pieceMoved == "bK":
             # black king has been moved
             self.currentCastlingRights.blackKingSide = False
             self.currentCastlingRights.blackQueenSide = False
@@ -534,19 +530,19 @@ class State():
 
         # 2a) Check king side spots to make sure they're clear
         if (self.whiteToMove and self.currentCastlingRights.whiteKingSide) or \
-                (note self.whiteToMove and self.currentCastlingRights.blackKingSide):
+                (not self.whiteToMove and self.currentCastlingRights.blackKingSide):
             if not self.board[i][j+1] and not self.board[i][j+2]:
                 # 3a) Check that the squares are not under attack
-                if not self.is_under_attack(self.board[i][j+1]) and not self.is_under_attack(self.board[i][j+2]):
+                if not self.is_under_attack(i, j+1) and not self.is_under_attack(i, j+2):
                     moves.append(
                         Move([i, j], [i, j + 2], self.board, isCastleMove=True))
 
         # 2b) Check queen side spots to make sure they're clear
         if (self.whiteToMove and self.currentCastlingRights.whiteQueenSide) or \
-                (note self.whiteToMove and self.currentCastlingRights.blackQueenSide):
+                (not self.whiteToMove and self.currentCastlingRights.blackQueenSide):
             if not self.board[i][j-1] and not self.board[i][j-2] and not self.board[i][j-3]:
                 # 3b) Check that the squares are not under attack
-                if not self.is_under_attack(self.board[i][j-1]) and not self.is_under_attack(self.board[i][j-2]):
+                if not self.is_under_attack(i, j-1) and not self.is_under_attack(i, j-2):
                     # Note that since the king never passes through the 3rd square to its right,
                     # we don't need to check whether that square is under attack
                     moves.append(
@@ -727,6 +723,17 @@ class State():
             # if there is no check, anything goes
             # (pins are dealt with in the get<piece>Moves functions)
             validMoves = self.get_all_possible_moves()
+
+            # since we are not in check, we also need castling moves
+            allyColor = "w" if self.whiteToMove else "b"
+            if self.whiteToMove:
+                # white castling moves
+                self.get_castling_moves(
+                    self.whiteKingPosition[0], self.whiteKingPosition[1], validMoves, allyColor)
+            else:
+                # black castling moves
+                self.get_castling_moves(
+                    self.blackKingPosition[0], self.blackKingPosition[1], validMoves, allyColor)
 
         # set checkmate if you are in check and there are no moves, and
         # set stalement if you are not in check but there are no moves.
