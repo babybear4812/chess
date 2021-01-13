@@ -69,6 +69,16 @@ def draw_game_state(screen, state, validMoves, sqClicked):
     draw_pieces(screen, state.board)
 
 
+def draw_text(screen, text):
+    """Draws end of game message, including which player one or whether there was a stalemate. """
+    # font type, size, bold, italics
+    font = pg.font.SysFont("Arial", 32, True, False)
+    textObject = font.render(text, 0, pg.Color("Black"))
+    textLocation = pg.Rect(0, 0, WIDTH, HEIGHT).move(
+        WIDTH/2 - textObject.get_width()/2, HEIGHT/2 - textObject.get_height()/2)
+    screen.blit(textObject, textLocation)
+
+
 def main():
     """Main function that controls screen display, imports pieces, runs the clock, and contains the event listener. """
     screen = pg.display.set_mode((WIDTH, HEIGHT))  # initialize screen
@@ -84,46 +94,48 @@ def main():
     sqClicked = ()  # will store [r, c] of square clicked
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
+    gameOver = False
+
     # game event queue
     while playing:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 playing = False  # when game is quit, stop drawing state.
+            if not gameOver:
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    # we can change this event to be a drag instead of a click
+                    location = pg.mouse.get_pos()  # [x, y]
+                    col = location[0] // SQ_SIZE
+                    row = location[1] // SQ_SIZE
 
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                # we can change this event to be a drag instead of a click
-                location = pg.mouse.get_pos()  # [x, y]
-                col = location[0] // SQ_SIZE
-                row = location[1] // SQ_SIZE
+                    # check if user is double clicking on a square so we can clear original click
+                    if sqClicked == (row, col):
+                        sqClicked = ()  # deselect original click
+                        prevClicks = []  # clear all other clicks
+                    else:
+                        # stores first click, or overwrites prev click
+                        sqClicked = (row, col)
+                        # stores both first and second click
+                        prevClicks.append(sqClicked)
 
-                # check if user is double clicking on a square so we can clear original click
-                if sqClicked == (row, col):
-                    sqClicked = ()  # deselect original click
-                    prevClicks = []  # clear all other clicks
-                else:
-                    # stores first click, or overwrites prev click
-                    sqClicked = (row, col)
-                    # stores both first and second click
-                    prevClicks.append(sqClicked)
+                    # check if they have decided to make a move
+                    if len(prevClicks) == 2:
+                        move = engine.Move(
+                            prevClicks[0], prevClicks[1], state.board)
+                        for i in range(len(validMoves)):
+                            if move == validMoves[i]:
+                                state.make_move(validMoves[i])
+                                moveMade = True
 
-                # check if they have decided to make a move
-                if len(prevClicks) == 2:
-                    move = engine.Move(
-                        prevClicks[0], prevClicks[1], state.board)
-                    for i in range(len(validMoves)):
-                        if move == validMoves[i]:
-                            state.make_move(validMoves[i])
-                            moveMade = True
+                                # reset square clicked and previous clicks
+                                sqClicked = ()
+                                prevClicks = []
+                        if not moveMade:
+                            # otherwise, if it wasn't a valid move, we won't change the square clicked
+                            # but we will clear the previous clicks and only keep the current click made
+                            prevClicks = [sqClicked]
 
-                            # reset square clicked and previous clicks
-                            sqClicked = ()
-                            prevClicks = []
-                    if not moveMade:
-                        # otherwise, if it wasn't a valid move, we won't change the square clicked
-                        # but we will clear the previous clicks and only keep the current click made
-                        prevClicks = [sqClicked]
-
-            elif event.type == pg.KEYDOWN:
+            if event.type == pg.KEYDOWN:
                 # key listener for undo move
                 if event.key == pg.K_z:
                     state.undo_move()
@@ -143,6 +155,19 @@ def main():
             moveMade = False
 
         draw_game_state(screen, state, validMoves, sqClicked)
+
+        # if the game is in checkmate or stalemate, we need to display the appropriate message
+        if state.checkmate:
+            gameOver = True
+            if state.checkmate:
+                if state.whiteToMove:
+                    draw_text(screen, "Black wins by checkmate!")
+                else:
+                    draw_text(screen, "White wins by checkmate!")
+        elif state.stalemate:
+            gameOver = True
+            draw_text(screen, "Stalemate!")
+
         clock.tick(MAX_FPS)
         pg.display.flip()  # updates the full display Surface
 
