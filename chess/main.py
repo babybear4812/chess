@@ -18,10 +18,8 @@ def import_pieces():
             "images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
 
-def draw_board(screen, state, validMoves, sqClicked):
-    """Fills board with squares and pieces every time it is called. """
-    board = state.board
-
+def draw_board(screen):
+    """Draws the board with an alternating checkered pattern. """
     # walk through entire board
     for i in range(8):
         for j in range(8):
@@ -33,18 +31,11 @@ def draw_board(screen, state, validMoves, sqClicked):
             pg.draw.rect(screen, color, pg.Rect(
                 j*SQ_SIZE, i*SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
-            highlight_square(screen, state, validMoves, sqClicked)
-
-            # if there should be a piece on the board, grab it and display it
-            piece = board[i][j]
-            if piece:
-                screen.blit(PIECES[piece], pg.Rect(
-                    j*SQ_SIZE, i*SQ_SIZE, SQ_SIZE, SQ_SIZE))
-
 
 def highlight_square(screen, state, validMoves, sqClicked):
+    """Highlights the current square being clicked, if it has a valid piece on it. """
     # only highlight a square one on the screen is clicked...
-    if sqClicked != ():
+    if sqClicked:
         i, j = sqClicked
         # ... and it's not empty...
         if state.board[i][j]:
@@ -54,15 +45,32 @@ def highlight_square(screen, state, validMoves, sqClicked):
                 # surface allows us to draw shapes onto the screen
                 surface = pg.Surface((SQ_SIZE, SQ_SIZE))
                 # transparency value, from 0 to 255
-                surface.set_alpha(5)
+                surface.set_alpha(100)
                 surface.fill(pg.Color('yellow'))
 
                 # this will display the highlight on the screen
                 screen.blit(surface, (j*SQ_SIZE, i*SQ_SIZE))
 
 
+def draw_pieces(screen, board):
+    """Draws the individual pieces on the board based on where they are in the state. """
+    # if there should be a piece on the board, grab it and display it
+    for i in range(8):
+        for j in range(8):
+            piece = board[i][j]
+            if piece:
+                screen.blit(PIECES[piece], pg.Rect(
+                    j*SQ_SIZE, i*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+
+def draw_game_state(screen, state, validMoves, sqClicked):
+    draw_board(screen)
+    highlight_square(screen, state, validMoves, sqClicked)
+    draw_pieces(screen, state.board)
+
+
 def main():
-    """Main function that controls screen display, imports pieces, and runs the clock. """
+    """Main function that controls screen display, imports pieces, runs the clock, and contains the event listener. """
     screen = pg.display.set_mode((WIDTH, HEIGHT))  # initialize screen
 
     clock = pg.time.Clock()  # create Clock object to track time
@@ -126,7 +134,7 @@ def main():
             validMoves = state.get_valid_moves()
             moveMade = False
 
-        draw_board(screen, state, validMoves, sqClicked)
+        draw_game_state(screen, state, validMoves, sqClicked)
         clock.tick(MAX_FPS)
         pg.display.flip()  # updates the full display Surface
 
