@@ -1,6 +1,7 @@
 # Handling user input and displaying the board (state of the game, i.e. State class)
 import pygame as pg
 import engine
+import bot
 
 pg.init()  # initializing pygame
 WIDTH = HEIGHT = 800  # pygame screen size display
