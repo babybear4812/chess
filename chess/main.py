@@ -142,9 +142,9 @@ def main():
                     # we will consider this a move made so that it will trigger validMove recalculation
                     moveMade = True
                 # key listener for restart game
-                elif event.key == pg.K_r:
+                if event.key == pg.K_r:
                     state = engine.State()
-                    validMoves = state.get_valid_moves
+                    validMoves = state.get_valid_moves()
                     sqClicked = ()
                     prevClicks = []
                     moveMade = False
