@@ -740,10 +740,6 @@ class State():
         self.checkmate = not validMoves and self.inCheck
         self.stalemate = not validMoves and not self.inCheck
 
-        for move in validMoves:
-            if move.isCastleMove:
-                print('castle move found: ', move.startRow, move.startCol,
-                      move.endRow, move.endCol, move.isCastleMove)
         return validMoves
 
     def get_all_possible_moves(self):
