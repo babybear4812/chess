@@ -101,8 +101,9 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 playing = False  # when game is quit, stop drawing state.
-            if not gameOver:
-                if event.type == pg.MOUSEBUTTONDOWN:
+            # mouse listener
+            elif event.type == pg.MOUSEBUTTONDOWN:
+                if not gameOver:
                     # we can change this event to be a drag instead of a click
                     location = pg.mouse.get_pos()  # [x, y]
                     col = location[0] // SQ_SIZE
@@ -134,8 +135,8 @@ def main():
                             # otherwise, if it wasn't a valid move, we won't change the square clicked
                             # but we will clear the previous clicks and only keep the current click made
                             prevClicks = [sqClicked]
-
-            if event.type == pg.KEYDOWN:
+            # key listener
+            elif event.type == pg.KEYDOWN:
                 # key listener for undo move
                 if event.key == pg.K_z:
                     state.undo_move()
@@ -159,11 +160,10 @@ def main():
         # if the game is in checkmate or stalemate, we need to display the appropriate message
         if state.checkmate:
             gameOver = True
-            if state.checkmate:
-                if state.whiteToMove:
-                    draw_text(screen, "Black wins by checkmate!")
-                else:
-                    draw_text(screen, "White wins by checkmate!")
+            if state.whiteToMove:
+                draw_text(screen, "Black wins by checkmate!")
+            else:
+                draw_text(screen, "White wins by checkmate!")
         elif state.stalemate:
             gameOver = True
             draw_text(screen, "Stalemate!")
