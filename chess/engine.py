@@ -288,7 +288,7 @@ class State():
                         Move([i, j], [i+1, j+1], self.board, isEnPassantMove=True))
 
     def get_rook_moves(self, i, j, moves):
-        """Generate all possible rook moves. """
+        """Generate all possible rook moves (not including castling). """
 
         # We need to identify if the rook is pinned.
         # as well, if it is, we need to make sure that we can only

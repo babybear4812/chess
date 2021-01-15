@@ -1,7 +1,7 @@
 # Handling user input and displaying the board (state of the game, i.e. State class)
 import pygame as pg
 import engine
-import bot
+import ai_bot
 
 pg.init()  # initializing pygame
 WIDTH = HEIGHT = 800  # pygame screen size display
@@ -150,6 +150,10 @@ def main():
                     sqClicked = ()
                     prevClicks = []
                     moveMade = False
+                if event.key == pg.K_b:
+                    bot = ai_bot.Bot()
+                    bot.bot_move(state)
+                    moveMade = True
 
         # if a move was made, generate new set of valid moves and reset flag
         if moveMade:

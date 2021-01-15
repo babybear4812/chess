@@ -1,4 +1,4 @@
-import engine
+import random
 
 
 class Bot():
@@ -20,16 +20,14 @@ class Bot():
             "bK": -900
         }
 
-    def bot_move(self):
+    def bot_move(self, state):
         """
         Simulates all the valid moves for the bot, and calls the appropriate
         helper functions to decide which move to play.
         """
-        state = engine.State()
         board = state.board
 
         validMoves = state.get_valid_moves()
-
         minPoints = float('inf')
         bestMoves = []
 
@@ -37,7 +35,7 @@ class Bot():
         for move in validMoves:
             state.make_move(move)  # simulate making the move
             # get number of points after that move is made
-            movePoints = get_board_value(board)
+            movePoints = self.get_board_value(board)
 
             if movePoints < minPoints:  # found a new best move
                 minPoints = movePoints
