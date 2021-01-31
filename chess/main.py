@@ -91,19 +91,24 @@ def main():
     import_pieces()  # import pieces into global PIECES dictionary
 
     playing = True
+    gameOver = False
     sqClicked = ()  # will store [r, c] of square clicked
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
-    gameOver = False
+    playerOne = True  # True if human is playing white, else False if bot
+    playerTwo = False  # True if human is playing black, else False if bot
 
     # game event queue
     while playing:
+        isHumanTurn = (state.whiteToMove and playerOne) or (
+            not state.whiteToMove and playerTwo)
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 playing = False  # when game is quit, stop drawing state.
             # mouse listener
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if not gameOver:
+                if not gameOver and isHumanTurn:
                     # we can change this event to be a drag instead of a click
                     location = pg.mouse.get_pos()  # [x, y]
                     col = location[0] // SQ_SIZE
