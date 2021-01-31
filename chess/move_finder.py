@@ -26,15 +26,30 @@ CHECKMATE = 1000
 # setting stalemate to a netural 0 point score, rendering it desirable
 # if losing, and not desirable if winning
 STALEMATE = 0
+# recursive call depth
+MAX_DEPTH = 2
 
 
-def get_board_score(board):
+def get_board_score(state):
     """
     Gets the total material score on the board.
     A positive score indicates a favorable number of pieces for white.
     A negative score indicates a favorable number of pieces for black.
     """
+    board = state.board
     totalScore = 0
+
+    # if there's a checkmate or stalemate, don't bother looking through the rest of the board
+    if state.checkmate:
+        if state.whiteToMove:
+            # black wins
+            return -CHECKMATE
+        else:
+            # white wins
+            return CHECKMATE
+    elif state.stalemate:
+        return STALEMATE
+
     for i in range(8):
         for j in range(8):
             # if there is a piece on the board ...
@@ -52,49 +67,93 @@ def get_random_move(validMoves):
     return validMoves[random.randint(0, len(validMoves) - 1)]
 
 
-def get_best_move(state, validMoves):
-    """Makes the best move. """
-    opponentMinMaxScore = float('inf')
-    turnMultiplier = 1 if state.whiteToMove else -1
+# def get_best_move(state, validMoves):
+#     """Makes the best move. """
+#     opponentMinMaxScore = float('inf')
+#     turnMultiplier = 1 if state.whiteToMove else -1
 
-    bestMove = None
-    # shuffles possible moves so bot doesn't repeat the same move
-    # when presented with multiple best moves of equal point outcome
-    random.shuffle(validMoves)
+#     bestMove = None
+#     # shuffles possible moves so bot doesn't repeat the same move
+#     # when presented with multiple best moves of equal point outcome
+#     random.shuffle(validMoves)
 
-    for playerMove in validMoves:
-        state.make_move(playerMove)
-        opponentMoves = state.get_valid_moves()
-        if state.checkmate:
-            opponentMaxScore = float('-inf')
-        elif state.stalemate:
-            opponentMaxScore = 0
-        else:
-            opponentMaxScore = float('-inf')
+#     for playerMove in validMoves:
+#         state.make_move(playerMove)
+#         opponentMoves = state.get_valid_moves()
+#         if state.checkmate:
+#             opponentMaxScore = float('-inf')
+#         elif state.stalemate:
+#             opponentMaxScore = 0
+#         else:
+#             opponentMaxScore = float('-inf')
 
-            for opponentMove in opponentMoves:
-                state.make_move(opponentMove)
-                state.get_valid_moves()
+#             for opponentMove in opponentMoves:
+#                 state.make_move(opponentMove)
+#                 state.get_valid_moves()
 
-                if state.checkmate:
-                    score = CHECKMATE
-                elif state.stalemate:
-                    score = STALEMATE
-                else:
-                    # if the board score is negative, that is good for black.
-                    # so we will multiply it by -1 to make it positive in order
-                    # to compare it to the current opponentMinMaxScore they could get
-                    score = -turnMultiplier * get_board_score(state.board)
+#                 if state.checkmate:
+#                     score = CHECKMATE
+#                 elif state.stalemate:
+#                     score = STALEMATE
+#                 else:
+#                     # if the board score is negative, that is good for black.
+#                     # so we will multiply it by -1 to make it positive in order
+#                     # to compare it to the current opponentMinMaxScore they could get
+#                     score = -turnMultiplier * get_board_score(state)
 
-                if score > opponentMaxScore:
-                    opponentMaxScore = score
+#                 if score > opponentMaxScore:
+#                     opponentMaxScore = score
 
-                state.undo_move()
+#                 state.undo_move()
 
-        if opponentMaxScore < opponentMinMaxScore:
-            opponentMinMaxScore = opponentMaxScore
-            bestMove = playerMove
+#         if opponentMaxScore < opponentMinMaxScore:
+#             opponentMinMaxScore = opponentMaxScore
+#             bestMove = playerMove
 
-        state.undo_move()
+#         state.undo_move()
 
-    return bestMove
+#     return bestMove
+
+
+def get_best_move_min_max(state, validMoves):
+    """Helper method that will make the first recursive call. """
+    global nextMove
+    nextMove = None
+    get_move_min_max(state, validMoves, 0)
+    return nextMove
+
+
+def get_move_min_max(state, validMoves, depth):
+    global nextMove
+    if depth == MAX_DEPTH:
+        return get_board_score(state)
+
+    if state.whiteToMove:
+        maxScore = float('-inf')
+        for move in validMoves:
+            state.make_move(move)
+            newValidMoves = state.get_valid_moves()
+            score = get_move_min_max(
+                state, newValidMoves, depth + 1)
+            if score > maxScore:
+                maxScore = score
+                if depth == MAX_DEPTH:
+                    nextMove = move
+
+            state.undo_move()
+        return maxScore
+
+    else:
+        minScore = float('inf')
+        for move in validMoves:
+            state.make_move(move)
+            newValidMoves = state.get_valid_moves()
+            score = get_move_min_max(
+                state, newValidMoves, depth + 1)
+            if score < minScore:
+                minScore = score
+                if depth == MAX_DEPTH:
+                    nextMove = move
+
+            state.undo_move()
+        return minScore
