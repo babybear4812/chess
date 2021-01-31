@@ -46,26 +46,37 @@ def get_random_move(validMoves):
 
 def get_best_move(state, validMoves):
     """Makes the best move. """
-    maxScore = float('-inf')
+    opponentMinMaxScore = float('inf')
     turnMultiplier = 1 if state.whiteToMove else -1
 
     bestMove = None
+    random.shuffle(validMoves)
 
     for playerMove in validMoves:
         state.make_move(playerMove)
+        opponentMoves = state.get_valid_moves()
+        opponentMaxScore = float('-inf')
 
-        if state.checkmate:
-            score = CHECKMATE
-        elif state.stalemate:
-            score = STALEMATE
-        else:
-            # if the board score is negative, that is good for black.
-            # so we will multiply it by -1 to make it positive in order
-            # to compare it to the current maxScore they could get
-            score = turnMultiplier * get_board_score(state.board)
+        for opponentMove in opponentMoves:
+            state.make_move(opponentMove)
 
-        if score > maxScore:
-            maxScore = score
+            if state.checkmate:
+                score = -turnMultiplier * CHECKMATE
+            elif state.stalemate:
+                score = STALEMATE
+            else:
+                # if the board score is negative, that is good for black.
+                # so we will multiply it by -1 to make it positive in order
+                # to compare it to the current opponentMinMaxScore they could get
+                score = -turnMultiplier * get_board_score(state.board)
+
+            if score > opponentMaxScore:
+                opponentMaxScore = score
+
+            state.undo_move()
+
+        if opponentMaxScore < opponentMinMaxScore:
+            opponentMinMaxScore = opponentMaxScore
             bestMove = playerMove
 
         state.undo_move()

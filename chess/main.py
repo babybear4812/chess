@@ -159,10 +159,11 @@ def main():
         # bot will make move only if it is not a human turn, and the game is not over
         if not gameOver and not isHumanTurn:
             botMove = move_finder.get_best_move(state, validMoves)
-            if not botMove:
+            if botMove:
                 state.make_move(botMove)
             else:
-                state.make_move(move_finder.get_random_move())
+                # if there is no best move, make a random move
+                state.make_move(move_finder.get_random_move(validMoves))
 
             moveMade = True
 
