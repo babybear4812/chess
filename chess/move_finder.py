@@ -119,7 +119,11 @@ def get_best_move_min_max(state, validMoves):
     """Helper method that will make the first recursive call. """
     global nextMove
     nextMove = None
+    # shuffles possible moves so bot doesn't repeat the same move
+    # when presented with multiple best moves of equal point outcome
+    random.shuffle(validMoves)
     get_move_min_max(state, validMoves, 0)
+    print(nextMove)
     return nextMove
 
 
@@ -137,7 +141,7 @@ def get_move_min_max(state, validMoves, depth):
                 state, newValidMoves, depth + 1)
             if score > maxScore:
                 maxScore = score
-                if depth == MAX_DEPTH:
+                if depth == 0:
                     nextMove = move
 
             state.undo_move()
@@ -152,7 +156,7 @@ def get_move_min_max(state, validMoves, depth):
                 state, newValidMoves, depth + 1)
             if score < minScore:
                 minScore = score
-                if depth == MAX_DEPTH:
+                if depth == 0:
                     nextMove = move
 
             state.undo_move()
