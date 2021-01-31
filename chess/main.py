@@ -1,6 +1,7 @@
 # Handling user input and displaying the board (state of the game, i.e. State class)
 import pygame as pg
 import engine
+import move_finder
 
 pg.init()  # initializing pygame
 WIDTH = HEIGHT = 800  # pygame screen size display
@@ -154,6 +155,11 @@ def main():
                     sqClicked = ()
                     prevClicks = []
                     moveMade = False
+
+        # bot will make move only if it is not a human turn, and the game is not over
+        if not gameOver and not isHumanTurn:
+            state.make_move(move_finder.get_random_move(validMoves))
+            moveMade = True
 
         # if a move was made, generate new set of valid moves and reset flag
         if moveMade:
