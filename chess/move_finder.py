@@ -1,3 +1,14 @@
+'''
+A note on the minimax algorithm:
+- we are going to calculate the strength of our position based on the score on the board at any given moment.
+- If we want to look multiple moves ahead, we will simulate multiple moves and pick the optimal one.
+- However, by doing that blindly, we will be using the moves which would result in one player picking optimally,
+while the other player picks in the worst possible way.
+- To solve this problem, we will be selecting optimal moves (e.g. maximizing white score) while our
+opponent also optimizes their moves (e.g. minimizing black score) because high score is great for white
+and low score is great for black.
+
+'''
 import random
 
 piecePoints = {
