@@ -148,6 +148,7 @@ def main():
                     state.undo_move()
                     # we will consider this a move made so that it will trigger validMove recalculation
                     moveMade = True
+                    gameOver = False
                 # key listener for restart game
                 if event.key == pg.K_r:
                     state = engine.State()
@@ -155,10 +156,11 @@ def main():
                     sqClicked = ()
                     prevClicks = []
                     moveMade = False
+                    gameOver = False
 
         # bot will make move only if it is not a human turn, and the game is not over
         if not gameOver and not isHumanTurn:
-            botMove = move_finder.get_best_move(state, validMoves)
+            botMove = move_finder.get_best_move_min_max(state, validMoves)
             if botMove:
                 state.make_move(botMove)
             else:

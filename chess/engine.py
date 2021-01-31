@@ -210,6 +210,9 @@ class State():
                     # clear the rook's old position
                     self.board[lastMove.endRow][lastMove.endCol+1] = ""
 
+            self.checkmate = False
+            self.stalemate = False
+
     def get_pawn_moves(self, i, j, moves):
         """Generate all possible pawn moves. """
 
