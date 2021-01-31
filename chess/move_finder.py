@@ -2,7 +2,7 @@ import random
 
 piecePoints = {
     "P": 1,
-    "K": 3,
+    "N": 3,
     "B": 3,
     "R": 5,
     "Q": 9,

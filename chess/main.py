@@ -158,7 +158,12 @@ def main():
 
         # bot will make move only if it is not a human turn, and the game is not over
         if not gameOver and not isHumanTurn:
-            state.make_move(move_finder.get_random_move(validMoves))
+            botMove = move_finder.get_best_move(state, validMoves)
+            if not botMove:
+                state.make_move(botMove)
+            else:
+                state.make_move(move_finder.get_random_move())
+
             moveMade = True
 
         # if a move was made, generate new set of valid moves and reset flag
