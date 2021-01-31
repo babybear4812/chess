@@ -67,54 +67,6 @@ def get_random_move(validMoves):
     return validMoves[random.randint(0, len(validMoves) - 1)]
 
 
-# def get_best_move(state, validMoves):
-#     """Makes the best move. """
-#     opponentMinMaxScore = float('inf')
-#     turnMultiplier = 1 if state.whiteToMove else -1
-
-#     bestMove = None
-#     # shuffles possible moves so bot doesn't repeat the same move
-#     # when presented with multiple best moves of equal point outcome
-#     random.shuffle(validMoves)
-
-#     for playerMove in validMoves:
-#         state.make_move(playerMove)
-#         opponentMoves = state.get_valid_moves()
-#         if state.checkmate:
-#             opponentMaxScore = float('-inf')
-#         elif state.stalemate:
-#             opponentMaxScore = 0
-#         else:
-#             opponentMaxScore = float('-inf')
-
-#             for opponentMove in opponentMoves:
-#                 state.make_move(opponentMove)
-#                 state.get_valid_moves()
-
-#                 if state.checkmate:
-#                     score = CHECKMATE
-#                 elif state.stalemate:
-#                     score = STALEMATE
-#                 else:
-#                     # if the board score is negative, that is good for black.
-#                     # so we will multiply it by -1 to make it positive in order
-#                     # to compare it to the current opponentMinMaxScore they could get
-#                     score = -turnMultiplier * get_board_score(state)
-
-#                 if score > opponentMaxScore:
-#                     opponentMaxScore = score
-
-#                 state.undo_move()
-
-#         if opponentMaxScore < opponentMinMaxScore:
-#             opponentMinMaxScore = opponentMaxScore
-#             bestMove = playerMove
-
-#         state.undo_move()
-
-#     return bestMove
-
-
 def get_best_move_min_max(state, validMoves):
     """Helper method that will make the first recursive call. """
     global nextMove
