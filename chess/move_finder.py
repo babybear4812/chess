@@ -27,7 +27,7 @@ CHECKMATE = 1000
 # if losing, and not desirable if winning
 STALEMATE = 0
 # recursive call depth
-MAX_DEPTH = 2
+MAX_DEPTH = 3
 
 
 def get_board_score(state):
