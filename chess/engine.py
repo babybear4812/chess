@@ -174,7 +174,7 @@ class State():
             """
             # We need to deal with undoing an en passant...
             if lastMove.isEnPassantMove:
-                self.board[endRow][endCol] = ""
+                self.board[lastMove.endRow][lastMove.endCol] = ""
                 self.board[lastMove.startRow][lastMove.endCol] = lastMove.pieceCaptured
                 self.enPassantSquare = (lastMove.endRow, lastMove.endCol)
 
