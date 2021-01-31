@@ -1,6 +1,7 @@
 # Handling user input and displaying the board (state of the game, i.e. State class)
 import pygame as pg
 import engine
+import move_finder
 
 pg.init()  # initializing pygame
 WIDTH = HEIGHT = 800  # pygame screen size display
@@ -91,19 +92,24 @@ def main():
     import_pieces()  # import pieces into global PIECES dictionary
 
     playing = True
+    gameOver = False
     sqClicked = ()  # will store [r, c] of square clicked
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
-    gameOver = False
+    playerOne = True  # True if human is playing white, else False if bot
+    playerTwo = False  # True if human is playing black, else False if bot
 
     # game event queue
     while playing:
+        isHumanTurn = (state.whiteToMove and playerOne) or (
+            not state.whiteToMove and playerTwo)
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 playing = False  # when game is quit, stop drawing state.
             # mouse listener
             elif event.type == pg.MOUSEBUTTONDOWN:
-                if not gameOver:
+                if not gameOver and isHumanTurn:
                     # we can change this event to be a drag instead of a click
                     location = pg.mouse.get_pos()  # [x, y]
                     col = location[0] // SQ_SIZE
@@ -149,6 +155,11 @@ def main():
                     sqClicked = ()
                     prevClicks = []
                     moveMade = False
+
+        # bot will make move only if it is not a human turn, and the game is not over
+        if not gameOver and not isHumanTurn:
+            state.make_move(move_finder.get_random_move(validMoves))
+            moveMade = True
 
         # if a move was made, generate new set of valid moves and reset flag
         if moveMade:
