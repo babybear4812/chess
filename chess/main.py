@@ -97,7 +97,7 @@ def main():
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
     whiteIsHuman = True  # True if human is playing white, else False if bot
-    blackIsHuman = False  # True if human is playing black, else False if bot
+    blackIsHuman = True  # True if human is playing black, else False if bot
 
     # game event queue
     while playing:
@@ -148,6 +148,7 @@ def main():
                     state.undo_move()
                     # we will consider this a move made so that it will trigger validMove recalculation
                     moveMade = True
+                    gameOver = False
                 # key listener for restart game
                 if event.key == pg.K_r:
                     state = engine.State()
@@ -155,6 +156,7 @@ def main():
                     sqClicked = ()
                     prevClicks = []
                     moveMade = False
+                    gameOver = False
 
         # bot will make move only if it is not a human turn, and the game is not over
         if not gameOver and not isHumanTurn:
