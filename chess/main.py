@@ -96,13 +96,13 @@ def main():
     sqClicked = ()  # will store [r, c] of square clicked
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
-    playerOne = True  # True if human is playing white, else False if bot
-    playerTwo = False  # True if human is playing black, else False if bot
+    whiteIsHuman = True  # True if human is playing white, else False if bot
+    blackIsHuman = False  # True if human is playing black, else False if bot
 
     # game event queue
     while playing:
-        isHumanTurn = (state.whiteToMove and playerOne) or (
-            not state.whiteToMove and playerTwo)
+        isHumanTurn = (state.whiteToMove and whiteIsHuman) or (
+            not state.whiteToMove and blackIsHuman)
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
