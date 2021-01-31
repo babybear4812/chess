@@ -75,40 +75,58 @@ def get_best_move_min_max(state, validMoves):
     # when presented with multiple best moves of equal point outcome
     random.shuffle(validMoves)
     get_move_min_max(state, validMoves, 0)
-    print(nextMove)
     return nextMove
 
 
 def get_move_min_max(state, validMoves, depth):
+    """
+    Recursive function that calculates the best possible move, after simulating
+    moves up to the preset level of maximum depth.
+    """
     global nextMove
+    # terminal condition that calculates board score if max depth is reached
     if depth == MAX_DEPTH:
         return get_board_score(state)
 
+    # simulate move for white
     if state.whiteToMove:
         maxScore = float('-inf')
         for move in validMoves:
-            state.make_move(move)
+            state.make_move(move)  # simulate move
+            # get new possible valid moves
             newValidMoves = state.get_valid_moves()
+            # calculate the score if the move is made
             score = get_move_min_max(
                 state, newValidMoves, depth + 1)
             if score > maxScore:
+                # update max possible score
                 maxScore = score
                 if depth == 0:
+                    # if we are back to the original call on the recursive function,
+                    # set the nextMove equal to this new best move as it results in
+                    # the highest possible board score
                     nextMove = move
 
             state.undo_move()
         return maxScore
 
+    # simulate move for black
     else:
         minScore = float('inf')
         for move in validMoves:
-            state.make_move(move)
+            state.make_move(move)  # simulate move
+            # get new possible valid moves
             newValidMoves = state.get_valid_moves()
+            # calculate the score if the move is made
             score = get_move_min_max(
                 state, newValidMoves, depth + 1)
             if score < minScore:
+                # update max possible score
                 minScore = score
                 if depth == 0:
+                    # if we are back to the original call on the recursive function,
+                    # set the nextMove equal to this new best move as it results in
+                    # the highest possible board score
                     nextMove = move
 
             state.undo_move()

@@ -485,8 +485,8 @@ class State():
 
     def get_queen_moves(self, i, j, moves):
         """Generate all possible queen moves. """
-        self.get_bishop_moves(i, j, moves)
         self.get_rook_moves(i, j, moves)
+        self.get_bishop_moves(i, j, moves)
 
     def get_king_moves(self, i, j, moves):
         # after we make a king move, we need to make sure that it's not in check

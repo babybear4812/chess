@@ -97,7 +97,7 @@ def main():
     prevClicks = []  # will store click history in the form [startSq, endSq]
 
     whiteIsHuman = True  # True if human is playing white, else False if bot
-    blackIsHuman = False  # True if human is playing black, else False if bot
+    blackIsHuman = True  # True if human is playing black, else False if bot
 
     # game event queue
     while playing:
